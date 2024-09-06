@@ -1,0 +1,37 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"antlr4.debug": {
+			"visualParseTreeHorizontal": true,
+			"visualParseTreeClustered": false
+		},
+		"antlr4.generation": {
+			"outputDir": "/Users/jlnmsi/Software/java/4DV507-2024/PlusMult/generated",
+			"mode": "external",
+			"language": "Java",
+			"listeners": true,
+			"visitors": true
+		},
+		"launch": {
+			"configurations": [
+				{
+					"type": "antlr-debug",
+					"request": "launch",
+					"name": "Debug PlusMult",
+					"grammar": "/Users/jlnmsi/Software/java/4DV507-2024/PlusMult/PlusMult.g4",
+					"input": "/Users/jlnmsi/Software/java/4DV507-2024/PlusMult/input.txt",
+					"visualParseTree": true
+
+				}
+			]
+		},
+		"java.project.referencedLibraries": [
+			"/Users/jlnmsi/software/java_courses/jars/antlr-4.8-complete.jar"
+		],
+
+	}
+}

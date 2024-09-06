@@ -1,0 +1,37 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"antlr4.debug": {
+			"visualParseTreeHorizontal": true,
+			"visualParseTreeClustered": false
+		},
+		"antlr4.generation": {
+			"outputDir": "/Users/matar/School/compiler/tutorial_island/generated",
+			"mode": "external",
+			"language": "Java",
+			"listeners": true,
+			"visitors": true
+		},
+		"launch": {
+			"configurations": [
+				{
+					"type": "antlr-debug",
+					"request": "launch",
+					"name": "Debug Expressions",
+					"grammar": "/Users/matar/School/compiler/tutorial_island/Expressions.g4",
+					"input": "/Users/matar/School/compiler/tutorial_island/ofp_examples_2024/arithmetic.ofp",
+					"visualParseTree": true
+
+				}
+			]
+		},
+		"java.project.referencedLibraries": [
+			"/Users/matar/School/compiler/tutorial_island/jar/antlr-4.8-complete.jar"
+		],
+
+	}
+}

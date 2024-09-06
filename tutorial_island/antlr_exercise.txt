@@ -1,0 +1,21 @@
+program Compute {
+    // Declarations
+    int n = 100;
+    int count = 2;
+    int fib;
+    int prev = 1;
+    int prevPrev = 1;
+    if (n > 2) {
+        while (count < n) {
+           fib = prev + prevPrev;
+           prevPrev = prev;
+           prev = fib;
+           count = count + 1;
+        }
+    } else {
+        fib = 1;
+    }
+    if (fib > 1) {
+        print(fib);
+    }
+}
