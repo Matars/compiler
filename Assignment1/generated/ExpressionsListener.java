@@ -50,6 +50,56 @@ public interface ExpressionsListener extends ParseTreeListener {
 	 */
 	void exitExpr(ExpressionsParser.ExprContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link ExpressionsParser#stmtBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterStmtBlock(ExpressionsParser.StmtBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ExpressionsParser#stmtBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitStmtBlock(ExpressionsParser.StmtBlockContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link ExpressionsParser#exprBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterExprBlock(ExpressionsParser.ExprBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ExpressionsParser#exprBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitExprBlock(ExpressionsParser.ExprBlockContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link ExpressionsParser#argBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterArgBlock(ExpressionsParser.ArgBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ExpressionsParser#argBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitArgBlock(ExpressionsParser.ArgBlockContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link ExpressionsParser#exprList}.
+	 * @param ctx the parse tree
+	 */
+	void enterExprList(ExpressionsParser.ExprListContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ExpressionsParser#exprList}.
+	 * @param ctx the parse tree
+	 */
+	void exitExprList(ExpressionsParser.ExprListContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link ExpressionsParser#newArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterNewArray(ExpressionsParser.NewArrayContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ExpressionsParser#newArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitNewArray(ExpressionsParser.NewArrayContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link ExpressionsParser#declare}.
 	 * @param ctx the parse tree
 	 */
@@ -139,14 +189,4 @@ public interface ExpressionsListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPrint(ExpressionsParser.PrintContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link ExpressionsParser#println}.
-	 * @param ctx the parse tree
-	 */
-	void enterPrintln(ExpressionsParser.PrintlnContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link ExpressionsParser#println}.
-	 * @param ctx the parse tree
-	 */
-	void exitPrintln(ExpressionsParser.PrintlnContext ctx);
 }

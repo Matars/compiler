@@ -37,6 +37,36 @@ public interface ExpressionsVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpr(ExpressionsParser.ExprContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link ExpressionsParser#stmtBlock}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStmtBlock(ExpressionsParser.StmtBlockContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionsParser#exprBlock}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExprBlock(ExpressionsParser.ExprBlockContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionsParser#argBlock}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArgBlock(ExpressionsParser.ArgBlockContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionsParser#exprList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExprList(ExpressionsParser.ExprListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ExpressionsParser#newArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNewArray(ExpressionsParser.NewArrayContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link ExpressionsParser#declare}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -90,10 +120,4 @@ public interface ExpressionsVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitPrint(ExpressionsParser.PrintContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ExpressionsParser#println}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitPrintln(ExpressionsParser.PrintlnContext ctx);
 }
