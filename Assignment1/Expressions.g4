@@ -43,7 +43,8 @@ newArray: 'new' TYPE '[' expr ']';
 
 // assign and declare could potentially be combined into one rule
 declare: TYPE ID ('[' ']')? ';';
-assign: TYPE? ID ('[' expr ']')? '=' (expr | newArray) ';';
+assign:
+	TYPE? ID ('[' expr ']')? '=' (expr | newArray | exprList) ';';
 
 // flow
 ifstmt: 'if' expr stmtBlock elsePart?;
