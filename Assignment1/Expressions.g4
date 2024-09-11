@@ -35,7 +35,7 @@ expr:
 	| methodCall;
 
 // common blocks
-stmtBlock: '{'? stmt* '}'? | stmt;
+stmtBlock: '{'? stmt* '}'? | stmt*;
 exprBlock: '{'? expr* '}'?;
 exprList: '{'? expr (',' expr)* '}'?;
 typeList: '(' TYPE ID? (',' TYPE ID?)* ')' | ('(' ')');
