@@ -23,7 +23,7 @@
 					"request": "launch",
 					"name": "Debug Expressions",
 					"grammar": "/Users/matar/School/compiler/Assignment1/Expressions.g4",
-					"input": "/Users/matar/School/compiler/Assignment1/ofp_examples_2024/strings.ofp",
+					"input": "/Users/matar/School/compiler/Assignment1/ofp_examples_2024/testing.ofp",
 					"visualParseTree": true
 
 				}

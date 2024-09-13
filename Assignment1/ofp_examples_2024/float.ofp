@@ -1,6 +1,7 @@
 void main() {
 	float f = 2.34;
 	float ff = 2.0;
+	float ffff = 4.0;
 	float fff = mult(f,5,ff);
 	println(fff);  # 4.68
 	

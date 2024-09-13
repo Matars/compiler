@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Name - Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: #35424a;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #e8491d 3px solid;
+        }
+
+        header a {
+            color: #ffffff;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+
+        header .highlight,
+        header .current a {
+            color: #e8491d;
+            font-weight: bold;
+        }
+
+        header a:hover {
+            color: #cccccc;
+            font-weight: bold;
+        }
+
+        #showcase {
+            min-height: 400px;
+            background: url('/api/placeholder/1100/400') no-repeat center center/cover;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        #showcase h1 {
+            margin-top: 100px;
+            font-size: 55px;
+            margin-bottom: 10px;
+        }
+
+        #showcase p {
+            font-size: 20px;
+        }
+
+        #skills,
+        #experience,
+        #contact {
+            margin-top: 20px;
+        }
+
+        .skill-item,
+        .experience-item {
+            background: #ffffff;
+            padding: 20px;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            padding: 20px;
+            margin-top: 20px;
+            color: #ffffff;
+            background-color: #e8491d;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1><span class="highlight">Your</span> Name</h1>
+        </div>
+    </header>
+
+    <section id="showcase">
+        <div class="container">
+            <h1>Professional Portfolio</h1>
+            <p>Welcome to my portfolio website. Here you'll find information about my skills, experience, and how to
+                contact me.</p>
+        </div>
+    </section>
+
+    <section id="skills">
+        <div class="container">
+            <h2>Skills</h2>
+            <div class="skill-item">
+                <h3>Web Development</h3>
+                <p>HTML, CSS, JavaScript, React</p>
+            </div>
+            <div class="skill-item">
+                <h3>Backend Development</h3>
+                <p>Node.js, Python, SQL</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="experience">
+        <div class="container">
+            <h2>Experience</h2>
+            <div class="experience-item">
+                <h3>Software Developer - ABC Company</h3>
+                <p>2020 - Present</p>
+                <p>Developed and maintained web applications using modern JavaScript frameworks.</p>
+            </div>
+            <div class="experience-item">
+                <h3>Junior Developer - XYZ Corp</h3>
+                <p>2018 - 2020</p>
+                <p>Assisted in the development of company websites and internal tools.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <div class="container">
+            <h2>Contact Me</h2>
+            <p>Email: your.email@example.com</p>
+            <p>Phone: (123) 456-7890</p>
+            <p>LinkedIn: linkedin.com/in/yourprofile</p>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Your Name. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            // Add a simple animation to showcase text
+            const showcaseText = document.querySelector('#showcase h1');
+            showcaseText.style.opacity = 0;
+            let opacity = 0;
+            const fadeIn = setInterval(() => {
+                if (opacity < 1) {
+                    opacity += 0.1;
+                    showcaseText.style.opacity = opacity;
+                } else {
+                    clearInterval(fadeIn);
+                }
+            }, 100);
+        });
+    </script>
+</body>
+
+</html>

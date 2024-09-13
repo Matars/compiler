@@ -18,6 +18,7 @@ int div(int a, int b) {
       return 1 + div(a-b,b) ;
 }
 
+
 # Assume n > 0
 int fib(int n) {
    if (n == 0)

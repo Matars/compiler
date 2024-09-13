@@ -1,6 +1,9 @@
 # arrays.ofp
 
 void main() {
+    int fem = 2-1;
+    println(2+2);
+ 
 	int[] a = new int[10];
 	int i = 0;
 	int n = 2; 
@@ -77,4 +80,5 @@ void selectionSort(float[] arr){
         arr[i] = smallestNumber; 
         i = i+1; 
     }  
+    
 }  
