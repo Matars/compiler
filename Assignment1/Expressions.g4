@@ -10,8 +10,7 @@ grammar Expressions;
 // Syntax Specification ==> Context-free Grammar
 start: methodDef* maindef methodDef*;
 
-maindef:
-	'void main' '(' (TYPE ID (',' TYPE ID)*)? ')' '{' stmt* '}';
+maindef: 'void main' paramList '{' stmt* '}';
 
 stmt:
 	expr ';'
@@ -33,35 +32,32 @@ expr:
 	| (INT | FLOAT | BOOL | ID | STRING | CHAR)
 	| ID '[' expr+ ']' // array indexing
 	| ID '.length' // array length
+	| 'new' TYPE '[' expr? ']'
 	| methodCall;
 
 // common blocks
 stmtBlock: '{'? stmt* '}'?;
 exprBlock: '(' expr ')';
+param: TYPE? ID;
+paramList: '(' (param (',' param)*)? ')';
+exprList: expr (',' expr)*;
 
+// stmt
 ifstmt: 'if' exprBlock stmtBlock elsePart?;
 elsePart: 'else' (ifstmt | stmtBlock);
 whilestmt: 'while' exprBlock stmtBlock;
 returnstmt: 'return' (expr)*;
+print: 'print' 'ln'? '(' '"'? expr? '"'? ')' ';';
 
-declare:
-	TYPE ID ('[' ']')? ';'; // Support for 1D array declarations
-
+declare: param ('[' ']')? ';';
 assign:
-	TYPE? ID ('[' expr ']')? '=' (
-		expr
-		| 'new' TYPE '[' expr? ']'
-		| '{' (expr (',' expr)*)? '}'
-	) ';'; // Support for 1D array assignments and initialization lists
-// Support for 1D array assignments
+	param ('[' expr ']')? '=' (expr | '{' exprList? '}') ';';
 
 methodCall:
 	ID '(' (expr+ (',' expr+)*)? ')' ';'? // Method call without assignment
-	| TYPE? ID '=' ID '(' (expr (',' expr)*)? ')' ';'?; // Method call with assignment
+	| param '=' ID '(' exprList? ')' ';'?; // Method call with assignment
 
-methodDef: TYPE ID '(' (TYPE ID (',' TYPE ID)*)? ')' stmtBlock;
-
-print: 'print' 'ln'? '(' '"'? expr? '"'? ')' ';';
+methodDef: param paramList stmtBlock;
 
 // Lexer Specification ==> Regular Expressions Only non-trivial expressions. Trivial token
 // definitions are hard coded in grammar.
@@ -69,9 +65,9 @@ INT: '0' | ('-'?) ('1' ..'9') ('0' ..'9')*;
 FLOAT: '0.0' | ('-'?) ('0' ..'9')* '.' ('0' ..'9')*;
 BOOL: 'true' | 'false';
 ID: ('a' ..'z' | 'A' ..'Z' | '_')+;
-// stirng and char
-STRING: '"' (~'"')* '"';
-CHAR: '\'' ~'\'' '\'';
+// stirng and char by AI
+STRING: '"' [a-zA-Z!.,?=:() ]* '"';
+CHAR: '\'' [a-zA-Z!.,?=:() ] '\'';
 WS: [ \t\r\n]+ -> skip;
 
 // is there a way to esacpe the empty space trailing the type? yes, add WS
