@@ -1,0 +1,39 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"antlr4.debug": {
+			"visualParseTreeHorizontal": true,
+			"visualParseTreeClustered": false
+		},
+		"antlr4.generation": {
+			"outputDir": "/Users/matar/School/compiler/Assignment2/generated",
+			"mode": "external",
+			"language": "Java",
+			"listeners": true,
+			"visitors": true
+		},
+		"launch": {
+			"configurations": [
+				{
+					"type": "antlr-debug",
+					"request": "launch",
+					"name": "Debug Expressions",
+					"grammar": "/Users/matar/School/compiler/Assignment2/OFP.g4",
+					"input": "/Users/matar/School/compiler/Assignment2/ofp_examples_2024/max.ofp",
+					"visualParseTree": true
+
+				}
+			]
+		},
+		"java.project.referencedLibraries": [
+			"/Users/matar/School/compiler/jar/antlr4-4.13.1.jar",
+			"/Users/matar/School/compiler/jar/antlr4-runtime-4.13.1.jar",
+			"/Users/matar/School/compiler/jar/org.abego.treelayout.core-1.0.3.jar",
+		],
+
+	}
+}

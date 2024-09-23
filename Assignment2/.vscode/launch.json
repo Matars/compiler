@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "ofp.Main",
+            "projectName": "Assignment2_1e8ddc1c"
+        },
+        {
+            "type": "antlr-debug",
+            "request": "launch",
+            "name": "Debug Expressions",
+            "grammar": "/Users/matar/School/compiler/Assignment2/OFP.g4",
+            "input": "/Users/matar/School/compiler/Assignment2/ofp_examples_2024/max.ofp",
+            "visualParseTree": true
+        }
+    ]
+}
