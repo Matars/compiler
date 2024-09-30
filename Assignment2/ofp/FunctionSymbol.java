@@ -1,7 +1,25 @@
 package ofp;
 
+import java.util.List;
+import java.util.ArrayList;
+
 public class FunctionSymbol extends Symbol {
-    public FunctionSymbol(String name) {
-        super(name);
+    private List<Symbol> parameters;
+
+    public FunctionSymbol(String type, String name) {
+        super(type, name);
+        this.parameters = new ArrayList<>();
+    }
+
+    public void addParameter(Symbol param) {
+        parameters.add(param);
+    }
+
+    public int getParameterCount() {
+        return parameters.size();
+    }
+
+    public List<Symbol> getParameters() {
+        return parameters;
     }
 }

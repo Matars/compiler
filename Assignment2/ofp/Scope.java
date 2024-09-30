@@ -49,4 +49,12 @@ public class Scope {
     public void setName(String name) {
         this.name = name;
     }
+
+    public void ToString() {
+        System.out.println("current scope: " + name);
+        for (Map.Entry<String, Symbol> entry : symbols.entrySet()) {
+            System.out.println("\t" + entry.getValue().toString());
+        }
+    }
+
 }

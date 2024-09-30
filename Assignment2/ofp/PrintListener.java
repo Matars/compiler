@@ -4,8 +4,6 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
-import org.antlr.v4.runtime.tree.ParseTreeProperty;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import generated.OFPBaseListener;
@@ -13,27 +11,10 @@ import generated.OFPParser;
 
 public class PrintListener extends OFPBaseListener {
 
-    private ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>(); // Node-to-scope mapping
-    private Scope currentScope;
-    private Scope globalScope = null; // Used to resolve function symbols
-    private String currentFunction; // For logging purposes
-    public boolean print = false;
-    int errorCount = 0; // Keep track of the total number of errors
-
-    public int getErrorCount() {
-        return errorCount;
-    }
-
     public void printIndented(ParserRuleContext ctx) {
         String tab = "    ";
         String indent = tab.repeat(ctx.depth());
-
-        if (currentScope == null) {
-            System.out.println(indent + ctx.getClass().getSimpleName() + "\t\t\t\t\t Scope: null");
-            return;
-        } else {
-            System.out.println(indent + ctx.getClass().getSimpleName() + "\t\t\t\t\t Scope: " + currentScope.name);
-        }
+        System.out.println(indent + ctx.getClass().getSimpleName());
     }
 
     /**
@@ -45,9 +26,6 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void enterStart(OFPParser.StartContext ctx) {
-        globalScope = new Scope(null); // Create a global scope with no parent
-        currentScope = globalScope;
-        scopes.put(ctx, currentScope); // Assign the global scope to the StartContext
     }
 
     /**
@@ -70,19 +48,7 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void enterMainFunc(OFPParser.MainFuncContext ctx) {
-        currentFunction = ctx.getChild(1).getText(); // Function name
 
-        // Check for duplicate function names
-        if (globalScope.resolve(currentFunction) != null) {
-            errorCount++;
-            System.out.println(errorCount + "\tDuplicate function declaration: " + currentFunction);
-        } else {
-            globalScope.addSymbol(new FunctionSymbol(currentFunction));
-            Scope mainScope = new Scope(globalScope);
-            mainScope.setName("main");
-            currentScope = mainScope;
-            scopes.put(ctx, mainScope);
-        }
     }
 
     /**
@@ -94,7 +60,6 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void exitMainFunc(OFPParser.MainFuncContext ctx) {
-        currentScope = globalScope;
     }
 
     /**
@@ -106,19 +71,6 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void enterMethodFunc(OFPParser.MethodFuncContext ctx) {
-        currentFunction = ctx.getChild(1).getText(); // Function name
-
-        // Check for duplicate function names
-        if (globalScope.resolve(currentFunction) != null) {
-            errorCount++;
-            System.out.println(errorCount + "\tDuplicate function declaration: " + currentFunction);
-        } else {
-            globalScope.addSymbol(new FunctionSymbol(currentFunction));
-            Scope funcScope = new Scope(globalScope);
-            funcScope.setName("funciton" + ctx.start.getLine());
-            currentScope = funcScope;
-            scopes.put(ctx, funcScope);
-        }
     }
 
     /**
@@ -130,7 +82,6 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void exitMethodFunc(OFPParser.MethodFuncContext ctx) {
-        currentScope = globalScope;
     }
 
     /**
@@ -142,10 +93,6 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void enterStmtBlock(OFPParser.StmtBlockContext ctx) {
-        Scope blockScope = new Scope(currentScope);
-        currentScope = blockScope;
-        currentScope.setName("block" + ctx.start.getLine());
-        scopes.put(ctx, blockScope);
     }
 
     /**
@@ -168,18 +115,6 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void enterArgList(OFPParser.ArgListContext ctx) {
-        // get variable names
-        List<TerminalNode> name = ctx.ID();
-        for (TerminalNode n : name) {
-            String varName = n.getText();
-            if (currentScope.resolveLocally(varName) != null) {
-                errorCount++;
-                System.out.println(
-                        errorCount + "\tDuplicate declaration in function " + currentFunction + ": " + varName);
-            } else {
-                currentScope.addSymbol(new Symbol(varName));
-            }
-        }
     }
 
     /**
@@ -246,14 +181,6 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void enterDeclareStmt(OFPParser.DeclareStmtContext ctx) {
-        String name = ctx.getChild(1).getText(); // Variable name
-
-        if (currentScope.resolveLocally(name) != null) {
-            errorCount++;
-            System.out.println(errorCount + "\tDuplicate declaration in function " + currentFunction + ": " + name);
-        } else {
-            currentScope.addSymbol(new Symbol(name));
-        }
     }
 
     /**
@@ -386,20 +313,6 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void enterCallMethodStmt(OFPParser.CallMethodStmtContext ctx) {
-        // get ctx func name
-        String name = ctx.getChild(0).getText();
-        // the reges is used to strip foo(); to foo
-        // there should be a better way to do this
-        name = name.replaceAll("\\(.*\\);", "");
-
-        Symbol sym = globalScope.resolve(name);
-
-        if (sym == null || !(sym instanceof FunctionSymbol)) {
-            errorCount++;
-            System.out.println(errorCount + "\t (call methodstmt) Undeclared function call in function " +
-                    currentFunction + ": " + name);
-
-        }
     }
 
     /**
@@ -444,14 +357,7 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void enterCallMethod(OFPParser.CallMethodContext ctx) {
-        String name = ctx.getChild(0).getText(); // Function name
-        Symbol sym = globalScope.resolve(name);
 
-        if (sym == null || !(sym instanceof FunctionSymbol)) {
-            errorCount++;
-            System.out.println(errorCount + "\t (call method) Undeclared function call in function " +
-                    currentFunction + ": " + name);
-        }
     }
 
     /**
@@ -761,13 +667,7 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void enterIdExpr(OFPParser.IdExprContext ctx) {
-        String name = ctx.getText();
-        Symbol sym = currentScope.resolve(name);
 
-        if (sym == null) {
-            errorCount++;
-            System.out.println(errorCount + "\tUndeclared variable in function " + currentFunction + ": " + name);
-        }
     }
 
     /**
@@ -901,9 +801,7 @@ public class PrintListener extends OFPBaseListener {
      */
     @Override
     public void enterEveryRule(ParserRuleContext ctx) {
-        if (print) {
-            printIndented(ctx);
-        }
+        printIndented(ctx);
     }
 
     /**

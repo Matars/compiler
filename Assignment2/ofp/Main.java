@@ -12,6 +12,7 @@ import java.io.IOException;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.gui.Trees;
 
@@ -53,12 +54,16 @@ public class Main {
         // Walk tree
         System.out.println("\nWalking tree started");
         ParseTreeWalker walker = new ParseTreeWalker();
-        PrintListener listener = new PrintListener();
+        // PrintListener listener = new PrintListener();
+        BuildSymbolListener buildSymb = new BuildSymbolListener();
+        checkSymbolListener checkSymb = new checkSymbolListener();
 
-        // walker.walk(listener, root);
+        walker.walk(buildSymb, root);
 
-        listener.print = true;
-        walker.walk(listener, root);
+        ParseTreeProperty<Scope> scopes = buildSymb.getScopes();
+        checkSymb.setScopes(scopes);
+
+        walker.walk(checkSymb, root);
     }
 
     public static void print(String msg) {

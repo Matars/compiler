@@ -1,12 +1,10 @@
 
 
 void main() {
-    foo();
-}
-
-
-int foo(int b){
     int a;
-    return a+b;
+    int b;
+    foo(a, b);
 }
 
+int foo(int a, int b){
+}
