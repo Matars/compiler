@@ -10,54 +10,59 @@ grammar OFP;
 // Syntax Specification ==> Context-free Grammar
 start: methodFunc* mainFunc methodFunc*;
 
-mainFunc: 'void' 'main' paramList '{' stmt* '}';
+mainFunc: 'void' 'main' argList stmtBlock;
 
-methodFunc: TYPE ID paramList stmtBlock;
+methodFunc: TYPE ID argList stmtBlock;
 
 // common blocks
 stmtBlock: stmt | '{' stmt* '}';
-paramList: '(' (TYPE ID (',' TYPE ID)*)? ')';
+argList: '(' (TYPE ID (',' TYPE ID)*)? ')';
 exprList: expr (',' expr)*; // could add ( '(' | '}' )
 
 stmt:
-	assign
-	| TYPE ID ';'
-	| arrayAcces
-	| arrayAssign
-	| 'if' expr stmtBlock ('else' (stmt | stmtBlock))?
-	| 'while' expr stmtBlock
-	| 'return' expr ';'
-	| methodCall
-	| print;
+	assign												# assignStmt
+	| TYPE ID ';'										# declareStmt
+	| arrayAcces										# arrayAccessStmt
+	| arrayAssign										# arrayAssignStmt
+	| 'if' expr stmtBlock ('else' (stmt | stmtBlock))?	# ifStmt
+	| 'while' expr stmtBlock							# whileStmt
+	| 'return' expr ';'									# returnStmt
+	| methodCall										# callMethodStmt
+	| print												# printStmt;
 
 expr:
-	'(' expr ')'								# parenthesis
-	| '-' expr									# negation
-	| expr ('*' | '/') expr						# multdiv
-	| expr ('+' | '-') expr						# addsub
-	| expr ('>' | '<' | '==') expr				# comp
-	| (INT | FLOAT | BOOL | ID | STRING | CHAR)	# literal
-	| expr '[' expr ']'							# arrayAccess
-	| expr '.length'							# length
-	| 'new' TYPE '[' expr ']'					# newArray
-	| methodCall								# callMethod;
+	'(' expr ')'					# parenthesis
+	| '-' expr						# negation
+	| expr ('*' | '/') expr			# multdiv
+	| expr ('+' | '-') expr			# addsub
+	| expr ('>' | '<' | '==') expr	# comp
+	| expr '[' expr ']'				# arrayAccess
+	| expr '.length'				# length
+	| 'new' TYPE '[' expr ']'		# newArray
+	| methodCall					# callMethod
+	| INT							# intExpr
+	| FLOAT							# floatExpr
+	| BOOL							# boolExpr
+	| ID							# idExpr
+	| STRING						# strExpr
+	| CHAR							# charExpr;
 
 // stmt
 print: ('print' | 'println') '(' expr ')' ';';
 
+// 'TYPE?' should not be here
 assign: TYPE? ID '=' expr ';';
-arrayAcces: ID '[' expr ']' '=' expr ';';
 arrayAssign: TYPE? ID '=' '{' exprList? '}' ';';
-
+arrayAcces: ID '[' expr ']' '=' expr ';';
 methodCall: ID '(' (expr (',' expr)*)? ')' ';'?;
 
 // Lexer Specification ==> Regular Expressions Only non-trivial expressions. Trivial token
 // definitions are hard coded in grammar.
 INT: '0' | [1-9][0-9]*;
+// below is probably wrong
 FLOAT: '0' '.' [0-9]+ | [1-9] [0-9]* '.' [0-9]+;
 BOOL: 'true' | 'false';
 ID: [a-zA-Z] [a-zA-Z0-9_]*; // cant be _hello
-// stirng and char by AI
 STRING: '"' [a-zA-Z!.,?=:() ]* '"';
 CHAR: '\'' [a-zA-Z!.,?=:() ] '\'';
 WS: [ \t\r\n]+ -> skip;
