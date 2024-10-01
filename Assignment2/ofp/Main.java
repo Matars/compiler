@@ -8,6 +8,7 @@
 package ofp;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CharStream;
@@ -54,7 +55,8 @@ public class Main {
         // Walk tree
         System.out.println("\nWalking tree started");
         ParseTreeWalker walker = new ParseTreeWalker();
-        // PrintListener listener = new PrintListener();
+        // PrintListener PrintListener = new PrintListener();
+
         BuildSymbolListener buildSymb = new BuildSymbolListener();
         checkSymbolListener checkSymb = new checkSymbolListener();
 
@@ -64,8 +66,9 @@ public class Main {
         checkSymb.setScopes(scopes);
 
         walker.walk(checkSymb, root);
-    }
 
-    public static void print(String msg) {
+        TypeCheckVisitor typeCheck = new TypeCheckVisitor();
+        typeCheck.visit(root);
+
     }
 }

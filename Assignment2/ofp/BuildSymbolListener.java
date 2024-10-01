@@ -41,7 +41,7 @@ public class BuildSymbolListener extends OFPBaseListener {
     @Override
     public void enterMainFunc(OFPParser.MainFuncContext ctx) {
         currentFunction = ctx.getChild(1).getText();
-        String currentFunctionType = ctx.getChild(0).getText();
+        OFPType currentFunctionType = new OFPType(ctx.getChild(0).getText());
 
         if (globalScope.resolve(currentFunction) != null) {
             errorCount++;
@@ -64,7 +64,7 @@ public class BuildSymbolListener extends OFPBaseListener {
     @Override
     public void enterMethodFunc(OFPParser.MethodFuncContext ctx) {
         currentFunction = ctx.getChild(1).getText();
-        String currentFunctionType = ctx.getChild(0).getText();
+        OFPType currentFunctionType = new OFPType(ctx.getChild(0).getText());
 
         if (globalScope.resolve(currentFunction) != null) {
             errorCount++;
@@ -114,7 +114,7 @@ public class BuildSymbolListener extends OFPBaseListener {
 
         for (int i = 0; i < names.size(); i++) {
             String varName = names.get(i).getText();
-            String varType = types.get(i).getText();
+            OFPType varType = new OFPType(types.get(i).getText());
 
             if (currentScope.resolveLocally(varName) != null) {
                 errorCount++;
@@ -138,15 +138,26 @@ public class BuildSymbolListener extends OFPBaseListener {
     @Override
     public void enterDeclareStmt(OFPParser.DeclareStmtContext ctx) {
         String name = ctx.getChild(1).getText(); // Variable name
-        String type = ctx.getChild(0).getText(); // Variable type
+        OFPType type = new OFPType(ctx.getChild(0).getText()); // Variable type
 
         if (currentScope.resolveLocally(name) != null) {
             errorCount++;
             // this should be done in checkSymbolListener
             System.out.println(
-                    errorCount + "\t[BUILD]Duplicate declaration in function " + currentFunction + ": " + name);
+                    errorCount + "\t[BUILD] Duplicate declaration in function " + currentFunction + ": " + name);
         } else {
             currentScope.addSymbol(new Symbol(type, name));
+        }
+    }
+
+    @Override
+    public void enterAssign(OFPParser.AssignContext ctx) {
+        String name = ctx.getChild(0).getText(); // Variable name
+        Symbol sym = currentScope.resolve(name);
+        if (sym == null) {
+            errorCount++;
+            System.out
+                    .println(errorCount + "\t[BUILD] Undeclared variable in function " + currentFunction + ": " + name);
         }
     }
 
@@ -182,15 +193,7 @@ public class BuildSymbolListener extends OFPBaseListener {
      */
     @Override
     public void enterIdExpr(OFPParser.IdExprContext ctx) {
-        String name = ctx.getText();
-        Symbol sym = currentScope.resolve(name);
 
-        if (sym == null) {
-            errorCount++;
-            // this sould be done in checkSymbolListener
-            System.out
-                    .println(errorCount + "\t[BUILD] Undeclared variable in function " + currentFunction + ": " + name);
-        }
     }
 
     public void ToString() {

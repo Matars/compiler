@@ -109,9 +109,9 @@ public class checkSymbolListener extends OFPBaseListener {
                     .println(errorCount + "\t[CHECK] Undeclared function in function " + currentFunction + ": " + name);
         } else if (sym instanceof FunctionSymbol) {
             FunctionSymbol func = (FunctionSymbol) sym;
+
             int expectedArgs = func.getParameterCount();
-            // actuall args is always wrong
-            int actualArgs = ctx.getChildCount();
+            int actualArgs = ctx.getChild(0).getChild(2).getText().split(",").length;
             if (expectedArgs != actualArgs) {
                 errorCount++;
                 System.out.println(errorCount + "\t[CHECK] Incorrect number of arguments for function " + name
@@ -122,8 +122,14 @@ public class checkSymbolListener extends OFPBaseListener {
 
     @Override
     public void enterCallMethod(OFPParser.CallMethodContext ctx) {
-        String name = ctx.getChild(0).getText(); // Function name
-        Symbol sym = globalScope.resolve(name);
+        String name = ctx.getChild(0).getText();
+        name = name.replaceAll("\\(.*\\)", "");
+
+        if (globalScope.resolve(name) == null) {
+            errorCount++;
+            System.out
+                    .println(errorCount + "\t[CHECK] Undeclared function in function " + currentFunction + ": " + name);
+        }
 
     }
 

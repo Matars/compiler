@@ -17,11 +17,11 @@ methodFunc: TYPE ID argList stmtBlock;
 // common blocks
 stmtBlock: stmt | '{' stmt* '}';
 argList: '(' (TYPE ID (',' TYPE ID)*)? ')';
-exprList: expr (',' expr)*; // could add ( '(' | '}' )
+exprList: expr (',' expr)*;
 
 stmt:
 	assign												# assignStmt
-	| TYPE ID ';'										# declareStmt
+	| TYPE expr ('=' expr)? ';'							# declareStmt
 	| arrayAcces										# arrayAccessStmt
 	| arrayAssign										# arrayAssignStmt
 	| 'if' expr stmtBlock ('else' (stmt | stmtBlock))?	# ifStmt
@@ -51,10 +51,10 @@ expr:
 print: ('print' | 'println') '(' expr ')' ';';
 
 // 'TYPE?' should not be here
-assign: TYPE? ID '=' expr ';';
+assign: expr '=' expr ';';
 arrayAssign: TYPE? ID '=' '{' exprList? '}' ';';
 arrayAcces: ID '[' expr ']' '=' expr ';';
-methodCall: ID '(' (expr (',' expr)*)? ')' ';'?;
+methodCall: ID '(' exprList? ')' ';'?;
 
 // Lexer Specification ==> Regular Expressions Only non-trivial expressions. Trivial token
 // definitions are hard coded in grammar.

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class FunctionSymbol extends Symbol {
     private List<Symbol> parameters;
 
-    public FunctionSymbol(String type, String name) {
+    public FunctionSymbol(OFPType type, String name) {
         super(type, name);
         this.parameters = new ArrayList<>();
     }

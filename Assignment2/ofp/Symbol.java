@@ -2,9 +2,9 @@ package ofp;
 
 public class Symbol {
     protected String name;
-    protected String type;
+    protected OFPType type;
 
-    public Symbol(String type, String name) {
+    public Symbol(OFPType type, String name) {
         this.name = name;
         this.type = type;
     }
@@ -13,11 +13,11 @@ public class Symbol {
         return name;
     }
 
-    public String getType() {
+    public OFPType getType() {
         return type;
     }
 
     public String toString() {
-        return type + ": " + name;
+        return type.getName() + ": " + name;
     }
 }
