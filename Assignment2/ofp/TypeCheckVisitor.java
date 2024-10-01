@@ -1,10 +1,17 @@
 package ofp;
 
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.antlr.v4.runtime.tree.TerminalNode;
+
 import generated.OFPBaseListener;
 import generated.OFPBaseVisitor;
 import generated.OFPParser;
 
-public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
+public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
+
+    private int errorCount = 0;
+    private ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>(); // Node-to-scope mapping
+    private Scope currentScope;
 
     /**
      * {@inheritDoc}
@@ -15,7 +22,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitStart(OFPParser.StartContext ctx) {
+    public OFPType visitStart(OFPParser.StartContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -28,7 +35,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitMainFunc(OFPParser.MainFuncContext ctx) {
+    public OFPType visitMainFunc(OFPParser.MainFuncContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -41,7 +48,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitMethodFunc(OFPParser.MethodFuncContext ctx) {
+    public OFPType visitMethodFunc(OFPParser.MethodFuncContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -54,7 +61,8 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitStmtBlock(OFPParser.StmtBlockContext ctx) {
+    public OFPType visitStmtBlock(OFPParser.StmtBlockContext ctx) {
+        currentScope = scopes.get(ctx);
         return visitChildren(ctx);
     }
 
@@ -67,7 +75,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitArgList(OFPParser.ArgListContext ctx) {
+    public OFPType visitArgList(OFPParser.ArgListContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -80,7 +88,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitExprList(OFPParser.ExprListContext ctx) {
+    public OFPType visitExprList(OFPParser.ExprListContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -93,7 +101,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitAssignStmt(OFPParser.AssignStmtContext ctx) {
+    public OFPType visitAssignStmt(OFPParser.AssignStmtContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -106,7 +114,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitDeclareStmt(OFPParser.DeclareStmtContext ctx) {
+    public OFPType visitDeclareStmt(OFPParser.DeclareStmtContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -119,7 +127,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitArrayAccessStmt(OFPParser.ArrayAccessStmtContext ctx) {
+    public OFPType visitArrayAccessStmt(OFPParser.ArrayAccessStmtContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -132,7 +140,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitArrayAssignStmt(OFPParser.ArrayAssignStmtContext ctx) {
+    public OFPType visitArrayAssignStmt(OFPParser.ArrayAssignStmtContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -145,7 +153,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitIfStmt(OFPParser.IfStmtContext ctx) {
+    public OFPType visitIfStmt(OFPParser.IfStmtContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -158,7 +166,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitWhileStmt(OFPParser.WhileStmtContext ctx) {
+    public OFPType visitWhileStmt(OFPParser.WhileStmtContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -171,7 +179,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitReturnStmt(OFPParser.ReturnStmtContext ctx) {
+    public OFPType visitReturnStmt(OFPParser.ReturnStmtContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -184,7 +192,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitCallMethodStmt(OFPParser.CallMethodStmtContext ctx) {
+    public OFPType visitCallMethodStmt(OFPParser.CallMethodStmtContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -197,7 +205,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitPrintStmt(OFPParser.PrintStmtContext ctx) {
+    public OFPType visitPrintStmt(OFPParser.PrintStmtContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -210,7 +218,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitCallMethod(OFPParser.CallMethodContext ctx) {
+    public OFPType visitCallMethod(OFPParser.CallMethodContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -223,7 +231,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitStrExpr(OFPParser.StrExprContext ctx) {
+    public OFPType visitStrExpr(OFPParser.StrExprContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -236,7 +244,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitCharExpr(OFPParser.CharExprContext ctx) {
+    public OFPType visitCharExpr(OFPParser.CharExprContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -249,7 +257,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitComp(OFPParser.CompContext ctx) {
+    public OFPType visitComp(OFPParser.CompContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -262,7 +270,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitNegation(OFPParser.NegationContext ctx) {
+    public OFPType visitNegation(OFPParser.NegationContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -275,7 +283,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitIntExpr(OFPParser.IntExprContext ctx) {
+    public OFPType visitIntExpr(OFPParser.IntExprContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -288,7 +296,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitLength(OFPParser.LengthContext ctx) {
+    public OFPType visitLength(OFPParser.LengthContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -301,7 +309,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitNewArray(OFPParser.NewArrayContext ctx) {
+    public OFPType visitNewArray(OFPParser.NewArrayContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -314,14 +322,18 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitAddsub(OFPParser.AddsubContext ctx) {
-        System.out.println("Addsub: " + ctx.getText());
+    public OFPType visitAddsub(OFPParser.AddsubContext ctx) {
 
-        String LHS = ctx.getChild(0).getText();
-        String RHS = ctx.getChild(2).getText();
+        OFPType LHS = visit(ctx.getChild(0));
+        OFPType RHS = visit(ctx.getChild(2));
 
         System.out.println("LHS: " + LHS);
         System.out.println("RHS: " + RHS);
+
+        if (LHS != RHS) {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
+        }
         return visitChildren(ctx);
     }
 
@@ -334,7 +346,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitParenthesis(OFPParser.ParenthesisContext ctx) {
+    public OFPType visitParenthesis(OFPParser.ParenthesisContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -347,7 +359,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitFloatExpr(OFPParser.FloatExprContext ctx) {
+    public OFPType visitFloatExpr(OFPParser.FloatExprContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -360,7 +372,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitMultdiv(OFPParser.MultdivContext ctx) {
+    public OFPType visitMultdiv(OFPParser.MultdivContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -373,7 +385,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitArrayAccess(OFPParser.ArrayAccessContext ctx) {
+    public OFPType visitArrayAccess(OFPParser.ArrayAccessContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -386,7 +398,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitBoolExpr(OFPParser.BoolExprContext ctx) {
+    public OFPType visitBoolExpr(OFPParser.BoolExprContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -399,7 +411,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitIdExpr(OFPParser.IdExprContext ctx) {
+    public OFPType visitIdExpr(OFPParser.IdExprContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -412,7 +424,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitPrint(OFPParser.PrintContext ctx) {
+    public OFPType visitPrint(OFPParser.PrintContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -425,7 +437,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitAssign(OFPParser.AssignContext ctx) {
+    public OFPType visitAssign(OFPParser.AssignContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -438,7 +450,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitArrayAssign(OFPParser.ArrayAssignContext ctx) {
+    public OFPType visitArrayAssign(OFPParser.ArrayAssignContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -451,7 +463,7 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitArrayAcces(OFPParser.ArrayAccesContext ctx) {
+    public OFPType visitArrayAcces(OFPParser.ArrayAccesContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -464,7 +476,34 @@ public class TypeCheckVisitor<T> extends OFPBaseVisitor<T> {
      * </p>
      */
     @Override
-    public T visitMethodCall(OFPParser.MethodCallContext ctx) {
+    public OFPType visitMethodCall(OFPParser.MethodCallContext ctx) {
         return visitChildren(ctx);
     }
+
+    @Override
+    public OFPType visitTerminal(TerminalNode node) {
+        if (node.getSymbol().getType() == OFPParser.ID) {
+            // return null if ID
+            Symbol sym = currentScope.resolve(node.getText());
+            return (OFPType) sym.getType();
+
+        } else if (node.getSymbol().getType() == OFPParser.INT) {
+            return (OFPType) ofp.OFPType.intType;
+        } else if (node.getSymbol().getType() == OFPParser.FLOAT) {
+            return (OFPType) ofp.OFPType.floatType;
+        } else if (node.getSymbol().getType() == OFPParser.CHAR) {
+            return (OFPType) ofp.OFPType.charType;
+        } else if (node.getSymbol().getType() == OFPParser.BOOL) {
+            return (OFPType) ofp.OFPType.boolType;
+        } else if (node.getSymbol().getType() == OFPParser.STRING) {
+            return (OFPType) ofp.OFPType.stringType;
+        }
+
+        return null;
+    }
+
+    public void setScopes(ParseTreeProperty scopes) {
+        this.scopes = scopes;
+    }
+
 }

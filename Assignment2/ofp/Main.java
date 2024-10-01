@@ -68,6 +68,7 @@ public class Main {
         walker.walk(checkSymb, root);
 
         TypeCheckVisitor typeCheck = new TypeCheckVisitor();
+        typeCheck.setScopes(scopes);
         typeCheck.visit(root);
 
     }

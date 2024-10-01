@@ -2,7 +2,7 @@ package ofp;
 
 public class OFPType {
 
-    private String name;
+    private String type;
 
     public static final OFPType voidType = new OFPType("void");
     public static final OFPType intType = new OFPType("int");
@@ -14,8 +14,8 @@ public class OFPType {
     public static final OFPType floatArrayType = new OFPType("float[]");
     public static final OFPType charArrayType = new OFPType("char[]");
 
-    public OFPType(String name) {
-        this.name = name;
+    public OFPType(String type) {
+        this.type = type;
     }
 
     public static OFPType getTypeFor(String typeName) {
@@ -44,11 +44,12 @@ public class OFPType {
     }
 
     public String getName() {
-        return this.name;
+        return this.type;
     }
 
     @Override
     public String toString() {
-        return "OFPType: " + this.name;
+        return this.type;
     }
+
 }

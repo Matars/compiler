@@ -1,8 +1,7 @@
 
 
 void main() {
-    int a = 2 + 2.5;
+    string a = 6;
+    int b = a + 5;
 }
-
-
 
