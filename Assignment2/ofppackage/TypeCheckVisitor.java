@@ -140,16 +140,21 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
         String LHS = ctx.getChild(0).toString().strip();
         String RHS = ctx.getChild(2).toString().strip();
 
-        if (!RHS.equals(';')) {
+        if (!RHS.equals(";")) {
             OFPType RHS_type = visit(ctx.getChild(3));
-            String RHS_type_string = RHS_type.toString();
+            // not sure if this is right, sometimes RHS_type is null (assuming on far right
+            // of expression)
+            if (!(RHS_type == null)) {
 
-            if (!LHS.equals(RHS_type_string)) {
-                errorCount++;
-                System.out.println(errorCount + "\t[TYPE] Type mismatch in declaration: " +
-                        ctx.getText());
-                System.out.println("LHS: " + LHS);
-                System.out.println("RHS: " + RHS_type);
+                String RHS_type_string = RHS_type.toString();
+
+                if (!LHS.equals(RHS_type_string)) {
+                    errorCount++;
+                    System.out.println(errorCount + "\t[TYPE] Type mismatch in declaration: " +
+                            ctx.getText());
+                    System.out.println("LHS: " + LHS);
+                    System.out.println("RHS: " + RHS_type);
+                }
 
             }
         }
@@ -206,6 +211,15 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitWhileStmt(OFPParser.WhileStmtContext ctx) {
+
+        OFPType condition = visit(ctx.getChild(1).getChild(1));
+        String conditionString = condition.toString().strip();
+
+        if (!conditionString.equals(ofppackage.OFPType.boolType.toString().strip())) {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Type mismatch in while condition: " + ctx.getText());
+        }
+
         return visitChildren(ctx);
     }
 
@@ -219,6 +233,9 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitReturnStmt(OFPParser.ReturnStmtContext ctx) {
+        
+
+        
         return visitChildren(ctx);
     }
 
@@ -297,6 +314,18 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitComp(OFPParser.CompContext ctx) {
+
+        OFPType LHS = visit(ctx.getChild(0));
+        OFPType RHS = visit(ctx.getChild(2));
+
+        String LHS_string = LHS.toString().strip();
+        String RHS_string = RHS.toString().strip();
+
+        if (!LHS_string.equals(RHS_string)) {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
+        }
+
         return visitChildren(ctx);
     }
 
@@ -372,6 +401,10 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
+        if (LHS == null || RHS == null) {
+            return null;
+        }
+
         String LHS_string = LHS.toString();
         String RHS_string = RHS.toString();
 
@@ -424,9 +457,14 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
-        if (LHS != RHS) {
+        String LHS_string = LHS.toString().strip();
+        String RHS_string = RHS.toString().strip();
+
+        if (!LHS_string.equals(RHS_string)) {
             errorCount++;
             System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
+            System.out.println("LHS: " + LHS_string);
+            System.out.println("RHS: " + RHS_string);
         }
 
         return visitChildren(ctx);
