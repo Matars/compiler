@@ -1,4 +1,4 @@
-package ofp;
+package ofppackage;
 
 import java.util.List;
 
@@ -111,7 +111,17 @@ public class checkSymbolListener extends OFPBaseListener {
             FunctionSymbol func = (FunctionSymbol) sym;
 
             int expectedArgs = func.getParameterCount();
-            int actualArgs = ctx.getChild(0).getChild(2).getText().split(",").length;
+            int actualArgs;
+
+            String args = ctx.getChild(0).getChild(2).getText();
+
+            // when 0 args child position seems to be ")". So we check for that
+            if (args.equals(")")) {
+                actualArgs = 0;
+            } else {
+                actualArgs = ctx.getChild(0).getChild(2).getText().split(",").length;
+            }
+
             if (expectedArgs != actualArgs) {
                 errorCount++;
                 System.out.println(errorCount + "\t[CHECK] Incorrect number of arguments for function " + name

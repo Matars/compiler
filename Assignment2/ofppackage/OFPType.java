@@ -1,4 +1,4 @@
-package ofp;
+package ofppackage;
 
 public class OFPType {
 
@@ -43,13 +43,9 @@ public class OFPType {
         }
     }
 
-    public String getName() {
-        return this.type;
-    }
-
     @Override
     public String toString() {
-        return this.type;
+        return this.type.strip();
     }
 
 }

@@ -1,4 +1,4 @@
-package ofp;
+package ofppackage;
 
 public class Symbol {
     protected String name;
@@ -18,6 +18,6 @@ public class Symbol {
     }
 
     public String toString() {
-        return type.getName() + ": " + name;
+        return type.toString() + ": " + name;
     }
 }

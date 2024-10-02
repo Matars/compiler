@@ -5,7 +5,7 @@
  * 
  * Starting point for the ofp compiler
  */
-package ofp;
+package ofppackage;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -56,11 +56,16 @@ public class Main {
         System.out.println("\nWalking tree started");
         ParseTreeWalker walker = new ParseTreeWalker();
         // PrintListener PrintListener = new PrintListener();
+        System.out.println();
+        System.out.println();
 
         BuildSymbolListener buildSymb = new BuildSymbolListener();
         checkSymbolListener checkSymb = new checkSymbolListener();
 
         walker.walk(buildSymb, root);
+
+        System.out.println();
+        System.out.println();
 
         ParseTreeProperty<Scope> scopes = buildSymb.getScopes();
         checkSymb.setScopes(scopes);

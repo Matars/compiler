@@ -1,4 +1,4 @@
-package ofp;
+package ofppackage;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -22,4 +22,5 @@ public class FunctionSymbol extends Symbol {
     public List<Symbol> getParameters() {
         return parameters;
     }
+
 }

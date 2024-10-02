@@ -1,7 +1,6 @@
 
 
 void main() {
-    string a = 6;
-    int b = a + 5;
+    int b = 342;
+    int x = b + 55;
 }
-
