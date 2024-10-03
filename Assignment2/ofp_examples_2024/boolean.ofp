@@ -12,6 +12,7 @@ void main() {
 bool flip(bool b) {
    if (b) return false;
    else return true;
+
 }
 
 bool select(bool b,bool bb, bool bbb) {

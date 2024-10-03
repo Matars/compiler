@@ -1,6 +1,7 @@
+void main(){
+    foo(true, "string");
+}
 
-
-void main() {
-    int a;
-    foo();
+bool foo(bool x, string y){
+    return x;
 }

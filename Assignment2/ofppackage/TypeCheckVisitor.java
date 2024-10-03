@@ -1,5 +1,7 @@
 package ofppackage;
 
+import java.util.List;
+
 import org.abego.treelayout.internal.util.java.lang.string.StringUtil;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -13,6 +15,7 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
     private int errorCount = 0;
     private ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>(); // Node-to-scope mapping
     private Scope currentScope;
+    private FunctionSymbol currentFunction;
 
     /**
      * {@inheritDoc}
@@ -54,21 +57,8 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
         // get function block scope
         currentScope = scopes.get(ctx.getChild(3));
 
-        FunctionSymbol funcSymbol = (FunctionSymbol) currentScope.resolve(ctx.getChild(1).getText());
-        String funcTypeString = funcSymbol.getType().toString();
-
-        int childcount = ctx.getChild(3).getChildCount();
-        OFPType returnType = visit(ctx.getChild(3).getChild(childcount - 2).getChild(1));
-        String returnTypeString = returnType.toString();
-
-        if (!funcTypeString.equals(returnTypeString)) {
-            errorCount++;
-            System.out.println(errorCount + "\t[TYPE] Type mismatch in function: " + ctx.getChild(1).getText());
-            // debug
-            System.out.println("funcType: " + funcTypeString);
-            System.out.println("returnType: " + returnTypeString);
-
-        }
+        // set current funciton
+        currentFunction = (FunctionSymbol) currentScope.resolve(ctx.getChild(1).getText());
 
         return visitChildren(ctx);
     }
@@ -233,22 +223,46 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitReturnStmt(OFPParser.ReturnStmtContext ctx) {
-        
+        OFPType returnExpr = visit(ctx.getChild(1));
 
-        
+        String returnExprString = returnExpr.toString().strip();
+        // get type of current func
+        String funcTypeString = currentFunction.getType().toString().strip();
+
+        if (!returnExprString.equals(funcTypeString)) {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Type mismatch in return statement: " + ctx.getText());
+            System.out.println("funcType: " + funcTypeString);
+            System.out.println("returnExpr: " + returnExprString);
+        }
+
         return visitChildren(ctx);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.
-     * </p>
-     */
     @Override
     public OFPType visitCallMethodStmt(OFPParser.CallMethodStmtContext ctx) {
+        // get function symbol
+        FunctionSymbol func = (FunctionSymbol) currentScope.resolve(ctx.getChild(0).getChild(0).getText());
+
+        List<OFPType> expectedParams = (List<OFPType>) func.getParameterTypes();
+
+        int j = 0;
+        for (int i = 0; i <= expectedParams.size(); i += 2) {
+
+            String actualParam = visit(ctx.getChild(0).getChild(2).getChild(i)).toString().strip();
+            String expectedParam = expectedParams.get(j).toString().strip();
+            j++;
+
+            // debug
+            System.out.println("expected: " + expectedParam);
+            System.out.println("actual: " + actualParam);
+
+            if (!expectedParam.equals(actualParam)) {
+                errorCount++;
+                System.out.println(errorCount + "\t[TYPE] Type mismatch in function call: " + ctx.getText());
+            }
+        }
+
         return visitChildren(ctx);
     }
 
@@ -306,7 +320,7 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
 
     /**
      * {@inheritDoc}
-     *
+     * 
      * <p>
      * The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.
@@ -318,6 +332,12 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
+        // chech that LHS and RHS are not string
+        if (LHS == ofppackage.OFPType.stringType || RHS == ofppackage.OFPType.stringType) {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Cant compare strings: " + ctx.getText());
+        }
+
         String LHS_string = LHS.toString().strip();
         String RHS_string = RHS.toString().strip();
 
@@ -326,7 +346,7 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
             System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
         }
 
-        return visitChildren(ctx);
+        return (OFPType) ofppackage.OFPType.boolType;
     }
 
     /**
@@ -401,10 +421,6 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
-        if (LHS == null || RHS == null) {
-            return null;
-        }
-
         String LHS_string = LHS.toString();
         String RHS_string = RHS.toString();
 
@@ -414,6 +430,7 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
             System.out.println("LHS: " + LHS_string);
             System.out.println("RHS: " + RHS_string);
         }
+
         return visitChildren(ctx);
     }
 
@@ -427,6 +444,7 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitParenthesis(OFPParser.ParenthesisContext ctx) {
+        System.out.println("parenthesis: " + ctx.getText());
         return visitChildren(ctx);
     }
 
@@ -571,7 +589,7 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitMethodCall(OFPParser.MethodCallContext ctx) {
-        return visitChildren(ctx);
+        return (OFPType) currentScope.resolve(ctx.getChild(0).getText()).getType();
     }
 
     // not sure why casting is needed
@@ -579,9 +597,13 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
     @Override
     public OFPType visitTerminal(TerminalNode node) {
         if (node.getSymbol().getType() == OFPParser.ID) {
-            // return null if ID
-            Symbol sym = currentScope.resolve(node.getText());
-            return (OFPType) sym.getType();
+            // check if function
+            if (currentScope.resolve(node.getText()) instanceof FunctionSymbol) {
+                return (OFPType) ((FunctionSymbol) currentScope.resolve(node.getText())).getType();
+            } else {
+                Symbol sym = currentScope.resolve(node.getText());
+                return (OFPType) sym.getType();
+            }
         } else if (node.getSymbol().getType() == OFPParser.INT) {
             return (OFPType) ofppackage.OFPType.intType;
         } else if (node.getSymbol().getType() == OFPParser.FLOAT) {

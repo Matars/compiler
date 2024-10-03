@@ -23,4 +23,16 @@ public class FunctionSymbol extends Symbol {
         return parameters;
     }
 
+    public List<OFPType> getParameterTypes() {
+        List<OFPType> types = new ArrayList<>();
+        for (Symbol param : parameters) {
+            types.add(param.getType());
+        }
+        return types;
+    }
+
+    public Symbol getParameter(int index) {
+        return parameters.get(index);
+    }
+
 }
