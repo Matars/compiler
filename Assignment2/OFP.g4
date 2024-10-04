@@ -52,7 +52,7 @@ print: ('print' | 'println') '(' expr ')' ';';
 
 // 'TYPE?' should not be here
 assign: expr '=' expr ';';
-arrayAssign: TYPE? ID '=' '{' exprList? '}' ';';
+arrayAssign: TYPE? ID '=' ('{' exprList? '}' | methodCall) ';';
 arrayAcces: ID '[' expr ']' '=' expr ';';
 methodCall: ID '(' exprList? ')' ';'?;
 

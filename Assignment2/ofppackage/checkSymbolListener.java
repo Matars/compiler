@@ -144,17 +144,6 @@ public class checkSymbolListener extends OFPBaseListener {
     }
 
     @Override
-    public void enterIdExpr(OFPParser.IdExprContext ctx) {
-        String name = ctx.getText();
-        Symbol sym = currentScope.resolve(name);
-        if (sym == null) {
-            errorCount++;
-            System.out
-                    .println(errorCount + "\t[CHECK] Undeclared variable in function " + currentFunction + ": " + name);
-        }
-    }
-
-    @Override
     public void enterReturnStmt(OFPParser.ReturnStmtContext ctx) {
         hasReturnStatement = true;
     }

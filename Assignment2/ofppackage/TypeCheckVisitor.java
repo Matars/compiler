@@ -2,15 +2,13 @@ package ofppackage;
 
 import java.util.List;
 
-import org.abego.treelayout.internal.util.java.lang.string.StringUtil;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import generated.OFPBaseListener;
 import generated.OFPBaseVisitor;
 import generated.OFPParser;
 
-public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
+public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
 
     private int errorCount = 0;
     private ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>(); // Node-to-scope mapping
@@ -126,12 +124,15 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitDeclareStmt(OFPParser.DeclareStmtContext ctx) {
+        // could be made better
 
         String LHS = ctx.getChild(0).toString().strip();
         String RHS = ctx.getChild(2).toString().strip();
 
         if (!RHS.equals(";")) {
+
             OFPType RHS_type = visit(ctx.getChild(3));
+
             // not sure if this is right, sometimes RHS_type is null (assuming on far right
             // of expression)
             if (!(RHS_type == null)) {
@@ -165,16 +166,25 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
         return visitChildren(ctx);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.
-     * </p>
-     */
     @Override
     public OFPType visitArrayAssignStmt(OFPParser.ArrayAssignStmtContext ctx) {
+
+        OFPType LHS = visit(ctx.getChild(0).getChild(0));
+        String LHS_string = LHS.toString().strip();
+
+        String currentType = LHS_string.replace("[]", "");
+
+        for (int i = 0; i < ctx.getChild(0).getChild(4).getChildCount(); i += 2) {
+            // check if type of array is correct
+            String indexType = visit(ctx.getChild(0).getChild(4).getChild(i)).toString().strip();
+            if (!indexType.equals(currentType)) {
+                errorCount++;
+                System.out.println(errorCount + "\t[TYPE] Type mismatch in array assignment: " + ctx.getText());
+            }
+        }
+        // OFPType RHS = visit(ctx.getChild(0).getChild(2));
+        // System.out.println("RHS: " + RHS.toString().strip());
+
         return visitChildren(ctx);
     }
 
@@ -203,9 +213,9 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
     public OFPType visitWhileStmt(OFPParser.WhileStmtContext ctx) {
 
         OFPType condition = visit(ctx.getChild(1).getChild(1));
-        String conditionString = condition.toString().strip();
+        OFPType boolType = ofppackage.OFPType.boolType;
 
-        if (!conditionString.equals(ofppackage.OFPType.boolType.toString().strip())) {
+        if (condition != boolType) {
             errorCount++;
             System.out.println(errorCount + "\t[TYPE] Type mismatch in while condition: " + ctx.getText());
         }
@@ -338,10 +348,7 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
             System.out.println(errorCount + "\t[TYPE] Cant compare strings: " + ctx.getText());
         }
 
-        String LHS_string = LHS.toString().strip();
-        String RHS_string = RHS.toString().strip();
-
-        if (!LHS_string.equals(RHS_string)) {
+        if (LHS != RHS) {
             errorCount++;
             System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
         }
@@ -404,12 +411,14 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitNewArray(OFPParser.NewArrayContext ctx) {
+        System.out.println("hello");
         return visitChildren(ctx);
     }
 
     /**
      * {@inheritDoc}
      *
+     * 
      * <p>
      * The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.
@@ -421,14 +430,11 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
-        String LHS_string = LHS.toString();
-        String RHS_string = RHS.toString();
-
-        if (!LHS_string.equals(RHS_string)) {
+        if (LHS != RHS) {
             errorCount++;
             System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
-            System.out.println("LHS: " + LHS_string);
-            System.out.println("RHS: " + RHS_string);
+            System.out.println("LHS: " + LHS.toString());
+            System.out.println("RHS: " + RHS.toString());
         }
 
         return visitChildren(ctx);
@@ -444,7 +450,6 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitParenthesis(OFPParser.ParenthesisContext ctx) {
-        System.out.println("parenthesis: " + ctx.getText());
         return visitChildren(ctx);
     }
 
@@ -475,14 +480,11 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
-        String LHS_string = LHS.toString().strip();
-        String RHS_string = RHS.toString().strip();
-
-        if (!LHS_string.equals(RHS_string)) {
+        if (LHS != RHS) {
             errorCount++;
             System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
-            System.out.println("LHS: " + LHS_string);
-            System.out.println("RHS: " + RHS_string);
+            System.out.println("LHS: " + LHS.toString());
+            System.out.println("RHS: " + LHS.toString());
         }
 
         return visitChildren(ctx);
@@ -614,6 +616,12 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
             return (OFPType) ofppackage.OFPType.boolType;
         } else if (node.getSymbol().getType() == OFPParser.STRING) {
             return (OFPType) ofppackage.OFPType.stringType;
+        } else if (node.getText().strip().equals("int[]")) {
+            return (OFPType) ofppackage.OFPType.intArrayType;
+        } else if (node.getText().strip().equals("float[]")) {
+            return (OFPType) ofppackage.OFPType.floatArrayType;
+        } else if (node.getText().strip().equals("char[]")) {
+            return (OFPType) ofppackage.OFPType.charArrayType;
         }
 
         return null;

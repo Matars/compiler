@@ -138,7 +138,7 @@ public class BuildSymbolListener extends OFPBaseListener {
     @Override
     public void enterDeclareStmt(OFPParser.DeclareStmtContext ctx) {
         String name = ctx.getChild(1).getText(); // Variable name
-        OFPType type = new OFPType(ctx.getChild(0).getText()); // Variable type
+        OFPType type = new OFPType(ctx.getChild(0).getText());
 
         if (currentScope.resolveLocally(name) != null) {
             errorCount++;
@@ -161,6 +161,20 @@ public class BuildSymbolListener extends OFPBaseListener {
         }
     }
 
+    @Override
+    public void enterArrayAssignStmt(OFPParser.ArrayAssignStmtContext ctx) {
+        String name = ctx.getChild(0).getChild(1).getText(); // Variable name
+        Symbol sym = currentScope.resolve(name);
+
+        OFPType type = new OFPType(ctx.getChild(0).getChild(0).getText());
+        if (sym != null) {
+            errorCount++;
+            System.out
+                    .println(errorCount + "\t[BUILD] Duplicate variable in function " + currentFunction + ": " + name);
+        } else {
+            currentScope.addSymbol(new Symbol(type, name));
+        }
+    }
 
     /**
      * {@inheritDoc}
@@ -185,16 +199,15 @@ public class BuildSymbolListener extends OFPBaseListener {
     public void enterCallMethod(OFPParser.CallMethodContext ctx) {
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * The default implementation does nothing.
-     * </p>
-     */
     @Override
     public void enterIdExpr(OFPParser.IdExprContext ctx) {
-
+        String name = ctx.getText();
+        Symbol sym = currentScope.resolve(name);
+        if (sym == null) {
+            errorCount++;
+            System.out
+                    .println(errorCount + "\t[BUILD] Undeclared variable in function " + currentFunction + ": " + name);
+        }
     }
 
     public void ToString() {
