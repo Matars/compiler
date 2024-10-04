@@ -353,7 +353,7 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
             System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
         }
 
-        return (OFPType) ofppackage.OFPType.boolType;
+        return OFPType.boolType;
     }
 
     /**
@@ -607,13 +607,13 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
                 return (OFPType) sym.getType();
             }
         } else if (node.getSymbol().getType() == OFPParser.INT) {
-            return (OFPType) ofppackage.OFPType.intType;
+            return OFPType.intType;
         } else if (node.getSymbol().getType() == OFPParser.FLOAT) {
-            return (OFPType) ofppackage.OFPType.floatType;
+            return OFPType.floatType;
         } else if (node.getSymbol().getType() == OFPParser.CHAR) {
-            return (OFPType) ofppackage.OFPType.charType;
+            return OFPType.charType;
         } else if (node.getSymbol().getType() == OFPParser.BOOL) {
-            return (OFPType) ofppackage.OFPType.boolType;
+            return OFPType.boolType;
         } else if (node.getSymbol().getType() == OFPParser.STRING) {
             return (OFPType) ofppackage.OFPType.stringType;
         } else if (node.getText().strip().equals("int[]")) {
