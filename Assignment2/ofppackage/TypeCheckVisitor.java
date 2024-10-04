@@ -430,7 +430,11 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
-        if (LHS != RHS) {
+        String LHS_string = LHS.toString();
+        
+        String RHS_string = RHS.toString();
+
+        if (!LHS_string.equals(RHS_string)) {
             errorCount++;
             System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
             System.out.println("LHS: " + LHS.toString());
