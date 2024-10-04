@@ -26,6 +26,7 @@ public class Main {
 
         // Select test program
         String testDir = "/Users/matar/School/compiler/Assignment2/ofp_examples_2024/";
+        // String testProgram = testDir + "recursion.ofp";
         String testProgram = testDir + "tmp.ofp";
 
         // Check if input ends with ".ofp"

@@ -342,15 +342,20 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
+        String LHS_string = LHS.toString().strip();
+        String RHS_string = RHS.toString().strip();
+
         // chech that LHS and RHS are not string
         if (LHS == ofppackage.OFPType.stringType || RHS == ofppackage.OFPType.stringType) {
             errorCount++;
             System.out.println(errorCount + "\t[TYPE] Cant compare strings: " + ctx.getText());
         }
 
-        if (LHS != RHS) {
+        if (!LHS_string.equals(RHS_string)) {
             errorCount++;
-            System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
+            System.out.println(errorCount + "\t[TYPE] here Type mismatch in expression: " + ctx.getText());
+            System.out.println("LHS: " + LHS.toString());
+            System.out.println("RHS: " + RHS.toString());
         }
 
         return OFPType.boolType;
@@ -430,11 +435,16 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
+        System.out.println(
+                "differnet hashcodes, samw types, must copare by string - pls fix (only occurs when calling method)");
+        System.out.println(RHS.hashCode());
+        System.out.println(LHS.hashCode());
+
         String LHS_string = LHS.toString();
-        
         String RHS_string = RHS.toString();
 
         if (!LHS_string.equals(RHS_string)) {
+
             errorCount++;
             System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
             System.out.println("LHS: " + LHS.toString());
@@ -484,11 +494,14 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
-        if (LHS != RHS) {
+        String LHS_string = LHS.toString();
+        String RHS_string = RHS.toString();
+
+        if (!LHS_string.equals(RHS_string)) {
             errorCount++;
             System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
             System.out.println("LHS: " + LHS.toString());
-            System.out.println("RHS: " + LHS.toString());
+            System.out.println("RHS: " + RHS.toString());
         }
 
         return visitChildren(ctx);
@@ -605,10 +618,17 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         if (node.getSymbol().getType() == OFPParser.ID) {
             // check if function
             if (currentScope.resolve(node.getText()) instanceof FunctionSymbol) {
-                return (OFPType) ((FunctionSymbol) currentScope.resolve(node.getText())).getType();
+                // this is wrong
+                FunctionSymbol func = (FunctionSymbol) currentScope.resolve(node.getText());
+                return OFPType.getTypeFor(func.getType().toString());
+
             } else {
                 Symbol sym = currentScope.resolve(node.getText());
-                return (OFPType) sym.getType();
+                // this is correct way of return the type of variable,
+                // should be the same done for above, but not sure why it is not working
+                // defaulting to resolving types by string comparison and not
+                // OFPType comparison, pls fix
+                return OFPType.getTypeFor(sym.getType().toString());
             }
         } else if (node.getSymbol().getType() == OFPParser.INT) {
             return OFPType.intType;

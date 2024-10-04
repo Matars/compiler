@@ -1,5 +1,9 @@
 void main(){
-    int b = 5;
-    int a = 5 + b;
+    int a = 5 + foo();
+    int b = 5 * foo();
+    bool c = 5 > foo();
 }
 
+int foo(){
+    return 5;
+}
