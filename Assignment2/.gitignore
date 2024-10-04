@@ -5,3 +5,7 @@ jar
 
 *.nterp
 *.tokens
+
+*.workspace
+
+Main.java
