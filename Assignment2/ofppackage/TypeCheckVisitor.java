@@ -422,6 +422,7 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         OFPType RHS = visit(ctx.getChild(2));
 
         String LHS_string = LHS.toString();
+        
         String RHS_string = RHS.toString();
 
         if (!LHS_string.equals(RHS_string)) {

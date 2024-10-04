@@ -1,5 +1,6 @@
 void main(){
-    int a = 5 + foo();
+    int b = 5;
+    int a = 5 + b;
 }
 
 int foo(){
