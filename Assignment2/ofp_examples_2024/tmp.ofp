@@ -1,7 +1,7 @@
 void main(){
-    foo(true, "string");
+    int a = 5 + foo();
 }
 
-bool foo(bool x, string y){
-    return x;
+int foo(){
+    return 5;
 }

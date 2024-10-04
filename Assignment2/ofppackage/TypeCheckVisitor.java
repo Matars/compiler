@@ -10,7 +10,7 @@ import generated.OFPBaseListener;
 import generated.OFPBaseVisitor;
 import generated.OFPParser;
 
-public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
+public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
 
     private int errorCount = 0;
     private ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>(); // Node-to-scope mapping
@@ -346,7 +346,7 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
             System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
         }
 
-        return (OFPType) ofppackage.OFPType.boolType;
+        return OFPType.boolType;
     }
 
     /**
@@ -605,15 +605,15 @@ public class TypeCheckVisitor<OFPType> extends OFPBaseVisitor<OFPType> {
                 return (OFPType) sym.getType();
             }
         } else if (node.getSymbol().getType() == OFPParser.INT) {
-            return (OFPType) ofppackage.OFPType.intType;
+            return OFPType.intType;
         } else if (node.getSymbol().getType() == OFPParser.FLOAT) {
-            return (OFPType) ofppackage.OFPType.floatType;
+            return OFPType.floatType;
         } else if (node.getSymbol().getType() == OFPParser.CHAR) {
-            return (OFPType) ofppackage.OFPType.charType;
+            return OFPType.charType;
         } else if (node.getSymbol().getType() == OFPParser.BOOL) {
-            return (OFPType) ofppackage.OFPType.boolType;
+            return OFPType.boolType;
         } else if (node.getSymbol().getType() == OFPParser.STRING) {
-            return (OFPType) ofppackage.OFPType.stringType;
+            return OFPType.stringType;
         }
 
         return null;
