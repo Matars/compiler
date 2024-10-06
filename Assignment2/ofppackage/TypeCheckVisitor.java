@@ -121,6 +121,9 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         // still cant compare OPFType objects, defaultign to string comparison
 
         String LHS_string = ctx.getChild(0).getText().strip();
+        if (LHS_string.contains("(")) {
+            return visit(ctx.getChild(0));
+        }
         String RHS_string = ctx.getChild(2).getText().strip();
 
         if (!RHS_string.equals(";")) {
@@ -144,8 +147,11 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
                 } else if (ctx.getChild(3).getText().contains(".length")) {
                     RHS_string = "int";
                 } else {
-                    OFPType RHS = visit(ctx.getChild(3));
-                    RHS_string = RHS.toString().strip();
+                    if (ctx.getChild(3).getText().contains("(")) {
+                        return visit(ctx.getChild(3));
+                    } else {
+                        RHS_string = visit(ctx.getChild(3)).toString().strip();
+                    }
                 }
 
                 // not sure if this is right, sometimes RHS_type is null (assuming on far right
@@ -458,15 +464,6 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         return visitChildren(ctx);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * 
-     * <p>
-     * The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.
-     * </p>
-     */
     @Override
     public OFPType visitAddsub(OFPParser.AddsubContext ctx) {
 
@@ -476,13 +473,22 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         if (ctx.getChild(0).getText().contains(".length")) {
             LHS = OFPType.intType;
         } else {
-            LHS = visit(ctx.getChild(0));
+            if (ctx.getChild(0).getText().contains("(")) {
+                return visit(ctx.getChild(0).getChild(0));
+            } else {
+                LHS = visit(ctx.getChild(0));
+            }
         }
 
         if (ctx.getChild(2).getText().contains(".length")) {
             RHS = OFPType.intType;
         } else {
-            RHS = visit(ctx.getChild(2));
+            if (ctx.getChild(2).getText().contains("(")) {
+                return visit(ctx.getChild(2).getChild(0));
+            } else {
+                RHS = visit(ctx.getChild(2));
+            }
+
         }
 
         String LHS_string = LHS.toString();
