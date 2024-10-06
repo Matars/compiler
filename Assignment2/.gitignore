@@ -6,6 +6,6 @@ jar
 *.nterp
 *.tokens
 
-*.workspace
+*.code-workspace
 
 Main.java
