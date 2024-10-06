@@ -1,7 +1,7 @@
 # strings.txt
 
 int countA(string str) {
-	int helloteam = -5;
+	int n = -5;
 	int i = 0;
 	while (i < str.length) {
 		char c = str[i];

@@ -12,7 +12,8 @@ start: methodFunc* mainFunc methodFunc*;
 
 mainFunc: 'void' 'main' argList stmtBlock;
 
-methodFunc: TYPE ID argList stmtBlock;
+// had to void because TYPE does not include void (becuase of main)
+methodFunc: (TYPE | 'void') ID argList stmtBlock;
 
 // common blocks
 stmtBlock: stmt | '{' stmt* '}';
@@ -31,21 +32,21 @@ stmt:
 	| print												# printStmt;
 
 expr:
-	'(' expr ')'					# parenthesis
-	| '-' expr						# negation
-	| expr ('*' | '/') expr			# multdiv
-	| expr ('+' | '-') expr			# addsub
-	| expr ('>' | '<' | '==') expr	# comp
-	| expr '[' expr ']'				# arrayAccess
-	| expr '.length'				# length
-	| 'new' TYPE '[' expr ']'		# newArray
-	| methodCall					# callMethod
-	| INT							# intExpr
-	| FLOAT							# floatExpr
-	| BOOL							# boolExpr
-	| ID							# idExpr
-	| STRING						# strExpr
-	| CHAR							# charExpr;
+	'(' expr ')'								# parenthesis
+	| '-' expr									# negation
+	| expr ('*' | '/') expr						# multdiv
+	| expr ('+' | '-') expr						# addsub
+	| expr ('>' | '<' | '==') expr				# comp
+	| (ID | STRING | methodCall) '[' expr ']'	# arrayAccess
+	| (ID | STRING | methodCall) '.length'		# length
+	| 'new' TYPE '[' expr ']'					# newArray
+	| methodCall								# callMethod
+	| INT										# intExpr
+	| FLOAT										# floatExpr
+	| BOOL										# boolExpr
+	| ID										# idExpr
+	| STRING									# strExpr
+	| CHAR										# charExpr;
 
 // stmt
 print: ('print' | 'println') '(' expr ')' ';';

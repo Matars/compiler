@@ -56,7 +56,11 @@ public class checkSymbolListener extends OFPBaseListener {
     public void enterMethodFunc(OFPParser.MethodFuncContext ctx) {
         currentFunction = ctx.getChild(1).getText();
         currentScope = scopes.get(ctx);
-        hasReturnStatement = false;
+        // if type is void, no return statement is needed
+        if (ctx.getChild(0).getText().equals("void")) {
+            hasReturnStatement = true;
+        } else
+            hasReturnStatement = false;
     }
 
     public void exitMethodFunc(OFPParser.MethodFuncContext ctx) {
@@ -139,8 +143,20 @@ public class checkSymbolListener extends OFPBaseListener {
             errorCount++;
             System.out
                     .println(errorCount + "\t[CHECK] Undeclared function in function " + currentFunction + ": " + name);
+            System.out.println("Line: " + ctx.getStart().getLine());
         }
+    }
 
+    @Override
+    public void enterMethodCall(OFPParser.MethodCallContext ctx) {
+        String name = ctx.getChild(0).getText();
+
+        if (globalScope.resolve(name) == null) {
+            errorCount++;
+            System.out
+                    .println(errorCount + "\t[CHECK] Undeclared function in function " + currentFunction + ": " + name);
+            System.out.println("Line: " + ctx.getStart().getLine());
+        }
     }
 
     @Override

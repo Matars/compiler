@@ -153,11 +153,16 @@ public class BuildSymbolListener extends OFPBaseListener {
     @Override
     public void enterAssign(OFPParser.AssignContext ctx) {
         String name = ctx.getChild(0).getText(); // Variable name
+
+        // if array access (includes [expr]) then remove the [expr] part
+        name = name.split("\\[")[0];
+
         Symbol sym = currentScope.resolve(name);
         if (sym == null) {
             errorCount++;
             System.out
                     .println(errorCount + "\t[BUILD] Undeclared variable in function " + currentFunction + ": " + name);
+            System.out.println("Line: " + ctx.start.getLine());
         }
     }
 

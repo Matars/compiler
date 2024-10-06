@@ -2,6 +2,7 @@ package ofppackage;
 
 import java.util.List;
 
+import org.antlr.v4.parse.ANTLRParser.id_return;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -114,40 +115,52 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         return visitChildren(ctx);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.
-     * </p>
-     */
     @Override
     public OFPType visitDeclareStmt(OFPParser.DeclareStmtContext ctx) {
         // could be made better
+        // still cant compare OPFType objects, defaultign to string comparison
 
-        String LHS = ctx.getChild(0).toString().strip();
-        String RHS = ctx.getChild(2).toString().strip();
+        String LHS_string = ctx.getChild(0).getText().strip();
+        String RHS_string = ctx.getChild(2).getText().strip();
 
-        if (!RHS.equals(";")) {
+        if (!RHS_string.equals(";")) {
+            RHS_string = ctx.getChild(3).getText().strip();
 
-            OFPType RHS_type = visit(ctx.getChild(3));
+            if (RHS_string.contains("new")) {
+                RHS_string = ctx.getChild(3).getChild(1).getText().strip();
+                LHS_string = LHS_string.replace("[]", "").strip();
+            } else {
+                if (ctx.getChild(3).getText().contains("[")) {
 
-            // not sure if this is right, sometimes RHS_type is null (assuming on far right
-            // of expression)
-            if (!(RHS_type == null)) {
+                    RHS_string = visit(ctx.getChild(3).getChild(0)).toString().strip();
+                    // remove [] from RHS
+                    RHS_string = RHS_string.replace("[]", "");
 
-                String RHS_type_string = RHS_type.toString();
+                    // pullling one char from string array
+                    if (RHS_string.equals("string")) {
+                        RHS_string = "char";
+                    }
 
-                if (!LHS.equals(RHS_type_string)) {
+                } else if (ctx.getChild(3).getText().contains(".length")) {
+                    RHS_string = "int";
+                } else {
+                    OFPType RHS = visit(ctx.getChild(3));
+                    RHS_string = RHS.toString().strip();
+                }
+
+                // not sure if this is right, sometimes RHS_type is null (assuming on far right
+                // of expression)
+
+                if (!LHS_string.equals(RHS_string)) {
                     errorCount++;
                     System.out.println(errorCount + "\t[TYPE] Type mismatch in declaration: " +
                             ctx.getText());
-                    System.out.println("LHS: " + LHS);
-                    System.out.println("RHS: " + RHS_type);
+                    System.out.println("LHS: " + LHS_string);
+                    System.out.println("RHS: " + RHS_string);
                 }
 
             }
+
         }
 
         return visitChildren(ctx);
@@ -253,8 +266,13 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
     public OFPType visitCallMethodStmt(OFPParser.CallMethodStmtContext ctx) {
         // get function symbol
         FunctionSymbol func = (FunctionSymbol) currentScope.resolve(ctx.getChild(0).getChild(0).getText());
+        System.out.println("function: " + func.getName());
 
         List<OFPType> expectedParams = (List<OFPType>) func.getParameterTypes();
+
+        if (expectedParams.size() == 0) {
+            return visitChildren(ctx);
+        }
 
         int j = 0;
         for (int i = 0; i <= expectedParams.size(); i += 2) {
@@ -264,8 +282,6 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
             j++;
 
             // debug
-            System.out.println("expected: " + expectedParam);
-            System.out.println("actual: " + actualParam);
 
             if (!expectedParam.equals(actualParam)) {
                 errorCount++;
@@ -342,6 +358,18 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
+        if (ctx.getChild(2).getChild(1) != null && ctx.getChild(2).getChild(1).getText().strip().equals(".length")) {
+            RHS = OFPType.intType;
+        }
+
+        // if inlcude [ its index access
+        if (ctx.getChild(0).getText().contains("[")) {
+            LHS = visit(ctx.getChild(0).getChild(0));
+        }
+        if (ctx.getChild(2).getText().contains("[")) {
+            RHS = visit(ctx.getChild(2).getChild(0));
+        }
+
         String LHS_string = LHS.toString().strip();
         String RHS_string = RHS.toString().strip();
 
@@ -398,10 +426,12 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
     @Override
     public OFPType visitLength(OFPParser.LengthContext ctx) {
         OFPType LHS = visit(ctx.getChild(0));
+        String LHS_string = LHS.toString().strip();
 
-        if (LHS != ofppackage.OFPType.stringType) {
+        if (!LHS_string.equals("int[]") && !LHS_string.equals("float[]") && !LHS_string.equals("char[]")
+                && !LHS_string.equals("string")) {
             errorCount++;
-            System.out.println(errorCount + "\t[TYPE] Cant .length on non array or string objects: " + ctx.getText());
+            System.out.println(errorCount + "\t[TYPE]Cant .length on non array or string objects: " + ctx.getText());
         }
         return visitChildren(ctx);
     }
@@ -416,7 +446,15 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitNewArray(OFPParser.NewArrayContext ctx) {
-        System.out.println("hello");
+        OFPType expr = visit(ctx.getChild(3));
+        String expr_string = expr.toString().strip();
+
+        // should compare by OFPType, same reason as the others, pls fix asap
+        if (!expr_string.equals("int")) {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Cant create array with non int size: " + ctx.getText());
+        }
+
         return visitChildren(ctx);
     }
 
@@ -432,13 +470,20 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
     @Override
     public OFPType visitAddsub(OFPParser.AddsubContext ctx) {
 
-        OFPType LHS = visit(ctx.getChild(0));
-        OFPType RHS = visit(ctx.getChild(2));
+        OFPType LHS;
+        OFPType RHS;
+        // check if includes .length
+        if (ctx.getChild(0).getText().contains(".length")) {
+            LHS = OFPType.intType;
+        } else {
+            LHS = visit(ctx.getChild(0));
+        }
 
-        System.out.println(
-                "differnet hashcodes, samw types, must copare by string - pls fix (only occurs when calling method)");
-        System.out.println(RHS.hashCode());
-        System.out.println(LHS.hashCode());
+        if (ctx.getChild(2).getText().contains(".length")) {
+            RHS = OFPType.intType;
+        } else {
+            RHS = visit(ctx.getChild(2));
+        }
 
         String LHS_string = LHS.toString();
         String RHS_string = RHS.toString();
@@ -624,11 +669,19 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
 
             } else {
                 Symbol sym = currentScope.resolve(node.getText());
-                // this is correct way of return the type of variable,
-                // should be the same done for above, but not sure why it is not working
-                // defaulting to resolving types by string comparison and not
-                // OFPType comparison, pls fix
-                return OFPType.getTypeFor(sym.getType().toString());
+                if (sym == null) {
+                    errorCount++;
+                    System.out.println(errorCount + "\t[TYPE] Undeclared variable in argument: " + node.getText());
+                } else {
+                    // this is correct way of return the type of variable,
+                    // should be the same done for above, but not sure why it is not working
+                    // defaulting to resolving types by string comparison and not
+                    // OFPType comparison, pls fix
+                    return OFPType.getTypeFor(sym.getType().toString());
+                }
+                // exit program
+                System.exit(1);
+
             }
         } else if (node.getSymbol().getType() == OFPParser.INT) {
             return OFPType.intType;

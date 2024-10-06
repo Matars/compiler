@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class FunctionSymbol extends Symbol {
-    private List<Symbol> parameters;
+    private List<Symbol> parameters = new ArrayList<>();
 
     public FunctionSymbol(OFPType type, String name) {
         super(type, name);
@@ -24,6 +24,7 @@ public class FunctionSymbol extends Symbol {
     }
 
     public List<OFPType> getParameterTypes() {
+
         List<OFPType> types = new ArrayList<>();
         for (Symbol param : parameters) {
             types.add(param.getType());
