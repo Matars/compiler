@@ -65,10 +65,10 @@ TYPE:
 	| 'bool'
 	| 'char'
 	| 'string'
-	| 'int[]'
-	| 'float[]'
-	| 'bool[]'
-	| 'char[]';
+	| 'int' '[' ']'
+	| 'float' '[' ']'
+	| 'bool' '[' ']'
+	| 'char' '[' ']';
 
 // Lexer Specification ==> Regular Expressions Only non-trivial expressions. Trivial token
 // definitions are hard coded in grammar.

@@ -148,11 +148,17 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitArrayAccessStmt(OFPParser.ArrayAccessStmtContext ctx) {
+        OFPType sliceType = visit(ctx.getChild(2));
+        if (sliceType != OFPType.intType) {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Array index must be of type int: " + ctx.getText());
+        }
+
         OFPType type = visit(ctx.getChild(0));
+
         if (type == OFPType.stringType || type == OFPType.charArrayType) {
             return OFPType.charType;
         } else if (type == OFPType.intArrayType) {
-            System.out.println("here");
             return OFPType.intType;
         } else if (type == OFPType.floatArrayType) {
             return OFPType.floatType;
@@ -189,16 +195,27 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
     public OFPType visitArrayAssignStmt(OFPParser.ArrayAssignStmtContext ctx) {
 
         OFPType LHS = visit(ctx.getChild(0).getChild(0));
-        String LHS_string = LHS.toString().strip();
 
-        String currentType = LHS_string.replace("[]", "");
+        if (LHS == OFPType.intArrayType) {
+            return OFPType.intType;
+        } else if (LHS == OFPType.floatArrayType) {
+            return OFPType.floatType;
+        } else if (LHS == OFPType.charArrayType) {
+            return OFPType.charType;
+        } else {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Cant assign to non array objects: " + ctx.getText());
+        }
 
         for (int i = 0; i < ctx.getChild(0).getChild(4).getChildCount(); i += 2) {
             // check if type of array is correct
-            String indexType = visit(ctx.getChild(0).getChild(4).getChild(i)).toString().strip();
-            if (!indexType.equals(currentType)) {
+            OFPType indexType = visit(ctx.getChild(0).getChild(4).getChild(i));
+            if (LHS != indexType) {
                 errorCount++;
                 System.out.println(errorCount + "\t[TYPE] Type mismatch in array assignment: " + ctx.getText());
+                System.out.println("LHS: " + LHS.toString().strip());
+                System.out.println("indexType: " + indexType.toString().strip());
+
             }
         }
         // OFPType RHS = visit(ctx.getChild(0).getChild(2));
@@ -664,9 +681,12 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
             return OFPType.floatArrayType;
         } else if (node.getText().strip().equals("char[]")) {
             return OFPType.charArrayType;
+        } else if (node.getText().strip().equals("void")) {
+            return OFPType.voidType;
         }
 
         return null;
+
     }
 
     public void setScopes(ParseTreeProperty scopes) {

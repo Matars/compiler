@@ -16,7 +16,7 @@ public class BuildSymbolListener extends OFPBaseListener {
     private Scope globalScope = null; // Used to resolve function symbols
     private String currentFunction; // For logging purposes
 
-    int errorCount = 0; // Keep track of the total number of errors
+    private int errorCount = 0; // Keep track of the total number of errors
 
     /**
      * {@inheritDoc}
@@ -34,7 +34,11 @@ public class BuildSymbolListener extends OFPBaseListener {
 
     @Override
     public void exitStart(OFPParser.StartContext ctx) {
-        ToString();
+        // ToString();
+        if (errorCount > 0) {
+            System.out.println("Found " + errorCount + " errors in the program");
+            System.exit(-1);
+        }
         currentScope = globalScope;
     }
 
@@ -101,7 +105,7 @@ public class BuildSymbolListener extends OFPBaseListener {
 
     @Override
     public void exitStmtBlock(OFPParser.StmtBlockContext ctx) {
-        ToString();
+        // ToString();
         currentScope = currentScope.getEnclosingScope();
     }
 
@@ -237,6 +241,10 @@ public class BuildSymbolListener extends OFPBaseListener {
 
     public ParseTreeProperty<Scope> getScopes() {
         return scopes;
+    }
+
+    public int getErrorCount() {
+        return errorCount;
     }
 
 }

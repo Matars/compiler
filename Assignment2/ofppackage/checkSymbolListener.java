@@ -26,6 +26,11 @@ public class checkSymbolListener extends OFPBaseListener {
 
     @Override
     public void exitStart(OFPParser.StartContext ctx) {
+        // toString();
+        if (errorCount > 0) {
+            System.out.println("Found " + errorCount + " errors in the program");
+            System.exit(-1);
+        }
 
     }
 
