@@ -137,12 +137,28 @@ public class BuildSymbolListener extends OFPBaseListener {
      */
     @Override
     public void enterDeclareStmt(OFPParser.DeclareStmtContext ctx) {
+
         String name = ctx.getChild(1).getText(); // Variable name
         OFPType type = new OFPType(ctx.getChild(0).getText());
 
         if (currentScope.resolveLocally(name) != null) {
             errorCount++;
             // this should be done in checkSymbolListener
+            System.out.println(
+                    errorCount + "\t[BUILD] Duplicate declaration in function " + currentFunction + ": " + name);
+        } else {
+            currentScope.addSymbol(new Symbol(type, name));
+        }
+    }
+
+    @Override
+    public void enterDeclareAssignStmt(OFPParser.DeclareAssignStmtContext ctx) {
+
+        String name = ctx.getChild(1).getText();
+        OFPType type = new OFPType(ctx.getChild(0).getText());
+
+        if (currentScope.resolveLocally(name) != null) {
+            errorCount++;
             System.out.println(
                     errorCount + "\t[BUILD] Duplicate declaration in function " + currentFunction + ": " + name);
         } else {
