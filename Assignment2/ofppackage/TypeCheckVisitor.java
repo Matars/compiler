@@ -197,11 +197,11 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         OFPType LHS = visit(ctx.getChild(0).getChild(0));
 
         if (LHS == OFPType.intArrayType) {
-            return OFPType.intType;
+            LHS = OFPType.intType;
         } else if (LHS == OFPType.floatArrayType) {
-            return OFPType.floatType;
+            LHS = OFPType.floatType;
         } else if (LHS == OFPType.charArrayType) {
-            return OFPType.charType;
+            LHS = OFPType.charType;
         } else {
             errorCount++;
             System.out.println(errorCount + "\t[TYPE] Cant assign to non array objects: " + ctx.getText());
@@ -218,8 +218,6 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
 
             }
         }
-        // OFPType RHS = visit(ctx.getChild(0).getChild(2));
-        // System.out.println("RHS: " + RHS.toString().strip());
 
         return visitChildren(ctx);
     }
