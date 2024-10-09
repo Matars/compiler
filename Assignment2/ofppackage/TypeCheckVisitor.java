@@ -475,11 +475,27 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitNewArray(OFPParser.NewArrayContext ctx) {
-        OFPType type = visit(ctx.getChild(3));
-        if (type == OFPType.intType) {
-            return OFPType.intArrayType;
+        OFPType lengthType = visit(ctx.getChild(3));
+        if (lengthType != OFPType.intType) {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Array length must be of type int: " + ctx.getText());
         }
-        return type;
+
+        // visit(ctx.getchild(1)) returns null type, why?
+        // defualt for string comparison
+        if (ctx.getChild(1).getText().strip().equals("int")) {
+            return OFPType.intArrayType;
+        } else if (ctx.getChild(1).getText().strip().equals("float")) {
+            return OFPType.floatArrayType;
+        } else if (ctx.getChild(1).getText().strip().equals("char")) {
+            return OFPType.charArrayType;
+        } else {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Cant create array of type: " + ctx.getText());
+        }
+
+        return null;
+
     }
 
     @Override
