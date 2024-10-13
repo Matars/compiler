@@ -196,16 +196,17 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
 
         OFPType LHS = visit(ctx.getChild(0).getChild(0));
 
-        // if (LHS == OFPType.intArrayType) {
-        //     return OFPType.intType;
-        // } else if (LHS == OFPType.floatArrayType) {
-        //     return OFPType.floatType;
-        // } else if (LHS == OFPType.charArrayType) {
-        //     return OFPType.charType;
-        // } else {
-        //     errorCount++;
-        //     System.out.println(errorCount + "\t[TYPE] Cant assign to non array objects: " + ctx.getText());
-        // }
+        if (LHS == OFPType.intArrayType) {
+            LHS = OFPType.intType;
+        } else if (LHS == OFPType.floatArrayType) {
+            LHS = OFPType.floatType;
+        } else if (LHS == OFPType.charArrayType) {
+            LHS = OFPType.charType;
+        } else {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Cant assign to non array objects: " + ctx.getText());
+            System.out.println("LHS: " + LHS.toString().strip());
+        }
 
         for (int i = 0; i < ctx.getChild(0).getChild(4).getChildCount(); i += 2) {
             // check if type of array is correct
@@ -218,8 +219,6 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
 
             }
         }
-        // OFPType RHS = visit(ctx.getChild(0).getChild(2));
-        // System.out.println("RHS: " + RHS.toString().strip());
 
         return visitChildren(ctx);
     }
@@ -465,37 +464,28 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         return visitChildren(ctx);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.
-     * </p>
-     */
     @Override
     public OFPType visitNewArray(OFPParser.NewArrayContext ctx) {
-        OFPType lengthType = visit(ctx.getChild(3));
-        if (lengthType != OFPType.intType) {
-            errorCount++;
-            System.out.println(errorCount + "\t[TYPE] Array length must be of type int: " + ctx.getText());
-        }
 
-        // visit(ctx.getchild(1)) returns null type, why?
-        // defualt for string comparison
-        if (ctx.getChild(1).getText().strip().equals("int")) {
-            return OFPType.intArrayType;
-        } else if (ctx.getChild(1).getText().strip().equals("float")) {
-            return OFPType.floatArrayType;
-        } else if (ctx.getChild(1).getText().strip().equals("char")) {
-            return OFPType.charArrayType;
+        OFPType RHS = null;
+        String RHS_string = ctx.getChild(1).getText();
+
+        if (RHS_string.equals("int")) {
+            RHS = OFPType.intArrayType;
+        } else if (RHS_string.equals("float")) {
+            RHS = OFPType.floatArrayType;
+        } else if (RHS_string.equals("char")) {
+            RHS = OFPType.charArrayType;
         } else {
             errorCount++;
-            System.out.println(errorCount + "\t[TYPE] Cant create array of type: " + ctx.getText());
+            System.out.println(errorCount + "\t[TYPE] Cant assign to non array objects: " + ctx.getText());
         }
 
-        return null;
-
+        if (RHS == null) {
+            System.out.println("RHS is null for " + ctx.getText());
+            System.exit(1);
+        }
+        return RHS;
     }
 
     @Override

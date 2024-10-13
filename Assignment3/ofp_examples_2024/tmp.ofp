@@ -1,3 +1,4 @@
 void main() {
-   char[] a = new int[10];
+print("hello worled")
+println("hello worled")
 }

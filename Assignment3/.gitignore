@@ -1,5 +1,6 @@
 
 generated
+ofp_examples_2024
 .antlr
 jar
 
@@ -7,5 +8,3 @@ jar
 *.tokens
 
 *.code-workspace
-
-Main.java
