@@ -30,7 +30,8 @@ stmt:
 	| 'while' expr stmtBlock							# whileStmt
 	| 'return' expr ';'									# returnStmt
 	| methodCall										# callMethodStmt
-	| print												# printStmt;
+	| print												# printStmt
+	| println											# printlnStmt;
 
 expr:
 	'(' expr ')'								# parenthesis
@@ -50,7 +51,8 @@ expr:
 	| CHAR										# charExpr;
 
 // stmt
-print: ('print' | 'println') '(' expr ')' ';';
+print: 'print' '(' expr ')' ';';
+println: 'println' '(' expr ')' ';';
 
 // 'TYPE?' should not be here
 assign: expr '=' expr ';';

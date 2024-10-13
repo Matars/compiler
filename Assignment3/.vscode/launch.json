@@ -5,6 +5,13 @@
       "name": "main",
       "request": "launch",
       "mainClass": "ofppackage.main",
+      "projectName": "Assignment3_1e8ddc1d"
+    },
+    {
+      "type": "java",
+      "name": "main",
+      "request": "launch",
+      "mainClass": "ofppackage.main",
       "projectName": "Assignment3_f0902e98"
     },
     {

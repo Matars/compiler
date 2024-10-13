@@ -41,6 +41,8 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitMainFunc(OFPParser.MainFuncContext ctx) {
+        currentScope = scopes.get(ctx);
+        currentFunction = (FunctionSymbol) currentScope.resolve(ctx.getChild(1).getText());
         return visitChildren(ctx);
     }
 

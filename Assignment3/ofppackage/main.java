@@ -28,7 +28,7 @@ public class main {
         // get cwd
         String cwd = System.getProperty("user.dir");
         String testDir = cwd + "/ofp_examples_2024/";
-        String testProgram = testDir + "arrays.ofp";
+        String testProgram = testDir + "tmp.ofp";
 
         // Check if input ends with ".ofp"
         if (!testProgram.endsWith(".ofp")) {
@@ -64,6 +64,7 @@ public class main {
         BuildSymbolListener buildSymb = new BuildSymbolListener();
         checkSymbolListener checkSymb = new checkSymbolListener();
 
+        System.out.println("Building symbol table");
         walker.walk(buildSymb, root);
 
         System.out.println();

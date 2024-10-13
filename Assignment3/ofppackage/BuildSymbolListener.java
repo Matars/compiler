@@ -116,6 +116,7 @@ public class BuildSymbolListener extends OFPBaseListener {
 
         FunctionSymbol currentFuncSymbol = (FunctionSymbol) globalScope.resolve(currentFunction);
 
+
         for (int i = 0; i < names.size(); i++) {
             String varName = names.get(i).getText();
             OFPType varType = new OFPType(types.get(i).getText());

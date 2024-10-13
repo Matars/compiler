@@ -1,4 +1,15 @@
 void main() {
-print("hello worled")
-println("hello worled")
+    println("hello worled");
+    print("hello");
+    int a = 5;
+    bool b = true;
+
+    if(b){
+        int a = 5 + 5;
+
+    }
+
+    print("last");
+    
+
 }
