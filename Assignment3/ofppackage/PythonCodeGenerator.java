@@ -41,7 +41,7 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
             String fName = p.getChild(1).getText();
             if (fName.equals("main")) {
                 main = p; // defer visit until after the rest of the functions
-                continue;
+                continue; // not sure if this is needed, fixed main running twice
             }
             buf.append(visit(p));
         }
@@ -80,7 +80,14 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitMethodFunc(OFPParser.MethodFuncContext ctx) {
-        return ctx.getText();
+        String funcstr = "def " + ctx.getChild(1).getText();
+        for(int i = 0; i < ctx.getChild(2).getChildCount() ; i+=2) {
+            funcstr +=  visit(ctx.getChild(2).getChild(i));
+        }
+        funcstr += ":\n";
+        funcstr += visit(ctx.getChild(3));
+
+        return funcstr;
     }
 
     /**
@@ -97,7 +104,7 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
         depth++;
         StringBuilder buf = new StringBuilder();
         for (int i = 1; i < ctx.getChildCount() - 1; i++) { // Visit statements
-            String stmt = visit(ctx.getChild(i));
+            String stmt = indent(depth) + visit(ctx.getChild(i));
             buf.append(stmt);
         }
         depth--;
@@ -141,7 +148,8 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitAssignStmt(OFPParser.AssignStmtContext ctx) {
-        return ctx.getText() + "\n";
+        return visit(ctx.getChild(0)) + " = " + visit(ctx.getChild(2)) + "\n";
+
     }
 
     /**
@@ -206,18 +214,10 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitIfStmt(OFPParser.IfStmtContext ctx) {
+        System.out.println(depth);
+        String ifString = visit(ctx.getChild(0))  + visit(ctx.getChild(1)) + ":\n";
+        ifString += visit(ctx.getChild(2));
 
-        String ifString = "if " + "(" + visit(ctx.getChild(1).getChild(1)) + ")" + ":\n";
-
-        for (int i = 0; i < ctx.getChild(2).getChildCount(); i++) {
-            // espace { and } in python
-            if (ctx.getChild(2).getChild(i).getText().equals("{")
-                    || ctx.getChild(2).getChild(i).getText().equals("}")) {
-                continue;
-            }
-
-            ifString += indent(depth) + visit(ctx.getChild(2).getChild(i));
-        }
         return ifString;
     }
 
@@ -231,7 +231,14 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitWhileStmt(OFPParser.WhileStmtContext ctx) {
-        return ctx.getText();
+        String whileString = visit(ctx.getChild(0)) + visit(ctx.getChild(1)) + ":\n";
+
+        for (int i = 1; i < ctx.getChild(2).getChildCount() - 1; i++) {
+
+            whileString += indent(depth) + visit(ctx.getChild(2).getChild(i));
+        }
+
+        return whileString;
     }
 
     /**
@@ -392,7 +399,11 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitAddsub(OFPParser.AddsubContext ctx) {
-        return ctx.getText();
+        String str = "";
+        for (int i = 0; i < ctx.getChildCount(); i++) {
+            str += visit(ctx.getChild(i));
+        }
+        return str;
     }
 
     /**
@@ -431,7 +442,11 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitMultdiv(OFPParser.MultdivContext ctx) {
-        return ctx.getText();
+        String str = "";
+        for (int i = 0; i < ctx.getChildCount(); i++) {
+            str += visit(ctx.getChild(i));
+        }
+        return str;
     }
 
     /**
@@ -477,18 +492,6 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
         return ctx.getText();
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.
-     * </p>
-     */
-    @Override
-    public String visitAssign(OFPParser.AssignContext ctx) {
-        return ctx.getText();
-    }
 
     /**
      * {@inheritDoc}

@@ -703,27 +703,7 @@ public class PrintListener extends OFPBaseListener {
     public void exitPrint(OFPParser.PrintContext ctx) {
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * The default implementation does nothing.
-     * </p>
-     */
-    @Override
-    public void enterAssign(OFPParser.AssignContext ctx) {
-    }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * The default implementation does nothing.
-     * </p>
-     */
-    @Override
-    public void exitAssign(OFPParser.AssignContext ctx) {
-    }
 
     /**
      * {@inheritDoc}

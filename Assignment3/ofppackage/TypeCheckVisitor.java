@@ -116,6 +116,15 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitAssignStmt(OFPParser.AssignStmtContext ctx) {
+        OFPType LHS = visit(ctx.getChild(0));
+        OFPType RHS = visit(ctx.getChild(2));
+
+        if (LHS != RHS) {
+            errorCount++;
+            System.out.println(errorCount + "\t[TYPE] Type mismatch in assignment: " + ctx.getText());
+            System.out.println("LHS: " + LHS.toString());
+            System.out.println("RHS: " + RHS.toString());
+        }
         return visitChildren(ctx);
     }
 
@@ -596,27 +605,7 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
         return visitChildren(ctx);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.
-     * </p>
-     */
-    @Override
-    public OFPType visitAssign(OFPParser.AssignContext ctx) {
-        OFPType LHS = visit(ctx.getChild(0));
-        OFPType RHS = visit(ctx.getChild(2));
 
-        if (LHS != RHS) {
-            errorCount++;
-            System.out.println(errorCount + "\t[TYPE] Type mismatch in assignment: " + ctx.getText());
-            System.out.println("LHS: " + LHS.toString());
-            System.out.println("RHS: " + RHS.toString());
-        }
-        return visitChildren(ctx);
-    }
 
     /**
      * {@inheritDoc}

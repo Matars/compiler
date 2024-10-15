@@ -172,7 +172,7 @@ public class BuildSymbolListener extends OFPBaseListener {
     }
 
     @Override
-    public void enterAssign(OFPParser.AssignContext ctx) {
+    public void enterAssignStmt(OFPParser.AssignStmtContext ctx) {
         String name = ctx.getChild(0).getText(); // Variable name
 
         // if array access (includes [expr]) then remove the [expr] part

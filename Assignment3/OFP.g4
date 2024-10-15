@@ -21,17 +21,17 @@ argList: '(' (TYPE ID (',' TYPE ID)*)? ')';
 exprList: expr (',' expr)*;
 
 stmt:
-	assign												# assignStmt
-	| TYPE expr ';'										# declareStmt
-	| TYPE expr ('=' expr) ';'							# declareAssignStmt
-	| arrayAcces										# arrayAccessStmt
-	| arrayAssign										# arrayAssignStmt
-	| 'if' expr stmtBlock ('else' (stmt | stmtBlock))?	# ifStmt
-	| 'while' expr stmtBlock							# whileStmt
-	| 'return' expr ';'									# returnStmt
-	| methodCall										# callMethodStmt
-	| print												# printStmt
-	| println											# printlnStmt;
+	expr '=' expr ';'							# assignStmt
+	| TYPE expr ';'								# declareStmt
+	| TYPE expr ('=' expr) ';'					# declareAssignStmt
+	| arrayAcces								# arrayAccessStmt
+	| arrayAssign								# arrayAssignStmt
+	| 'if' expr stmtBlock ('else' (stmtBlock))?	# ifStmt
+	| 'while' expr stmtBlock					# whileStmt
+	| 'return' expr ';'							# returnStmt
+	| methodCall								# callMethodStmt
+	| print										# printStmt
+	| println									# printlnStmt;
 
 expr:
 	'(' expr ')'								# parenthesis
@@ -55,7 +55,6 @@ print: 'print' '(' expr ')' ';';
 println: 'println' '(' expr ')' ';';
 
 // 'TYPE?' should not be here
-assign: expr '=' expr ';';
 arrayAssign: TYPE? ID '=' ('{' exprList? '}' | methodCall) ';';
 arrayAcces: ID '[' expr ']' '=' expr ';';
 methodCall: ID '(' exprList? ')' ';'?;
