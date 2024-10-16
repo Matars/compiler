@@ -116,8 +116,10 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitAssignStmt(OFPParser.AssignStmtContext ctx) {
-        OFPType LHS = visit(ctx.getChild(0));
-        OFPType RHS = visit(ctx.getChild(2));
+        
+        // why not use visit(ctx.getChild(0)) 
+        OFPType LHS = visit(ctx.getChild(0).getChild(0));
+        OFPType RHS = visit(ctx.getChild(0).getChild(2));
 
         if (LHS != RHS) {
             errorCount++;

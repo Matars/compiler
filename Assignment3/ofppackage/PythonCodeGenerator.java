@@ -80,10 +80,24 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitMethodFunc(OFPParser.MethodFuncContext ctx) {
-        String funcstr = "def " + ctx.getChild(1).getText();
-        for(int i = 0; i < ctx.getChild(2).getChildCount() ; i+=2) {
-            funcstr +=  visit(ctx.getChild(2).getChild(i));
+        String funcstr = "def" + " " + ctx.getChild(1).getText();
+
+
+        // get variable names in arglist with loop, index 2, 4, 6, ... with comma in between
+        String argList = "";
+        int childCount = ctx.getChild(2).getChildCount();
+
+        for (int i = 2; i < childCount; i += 3) {
+            argList += ctx.getChild(2).getChild(i).getText();
+            if (i < childCount - 3) {
+                argList += ", ";
+            }
         }
+        
+
+        funcstr += "(" + argList + ")";
+
+
         funcstr += ":\n";
         funcstr += visit(ctx.getChild(3));
 
@@ -148,7 +162,7 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitAssignStmt(OFPParser.AssignStmtContext ctx) {
-        return visit(ctx.getChild(0)) + " = " + visit(ctx.getChild(2)) + "\n";
+        return visit(ctx.getChild(0).getChild(0)) + " = " + visit(ctx.getChild(0).getChild(2)) + "\n";
 
     }
 

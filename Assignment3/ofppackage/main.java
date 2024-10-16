@@ -62,6 +62,7 @@ public class main {
         System.out.println();
 
         BuildSymbolListener buildSymb = new BuildSymbolListener();
+
         checkSymbolListener checkSymb = new checkSymbolListener();
 
         System.out.println("Building symbol table");

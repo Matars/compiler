@@ -10,6 +10,6 @@ void main() {
     }
 }
 
-int foo(int a, int b){
+int foo(int a){
     return 5;
 }
