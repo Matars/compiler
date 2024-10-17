@@ -1,15 +1,16 @@
 void main() {
-    int i = 1;
-    int n = 1;
-    int sum = 0;
-
-    if (i > n){
-        int a = 5;
-        sum = n+1;
-        sum = n*1;
-    }
+    maxOfThree(5, 6, 7);
 }
 
-int foo(int a){
-    return 5;
+
+int maxOfThree(int a, int b, int c) {
+	int d;
+   if (a > b) {
+      if (a > c) 
+   	  	 return a;
+   	  else if (c > a)
+   	     return c;
+   	  else 
+   	     return d;
+   } 
 }

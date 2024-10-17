@@ -10,6 +10,9 @@ package ofppackage;
 import java.io.IOException;
 import java.lang.reflect.Type;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -28,7 +31,8 @@ public class main {
         // get cwd
         String cwd = System.getProperty("user.dir");
         String testDir = cwd + "/ofp_examples_2024/";
-        String testProgram = testDir + "tmp.ofp";
+        String fileName = "tmp.ofp";
+        String testProgram = testDir + fileName;
 
         // Check if input ends with ".ofp"
         if (!testProgram.endsWith(".ofp")) {
@@ -82,6 +86,16 @@ public class main {
 
         PythonCodeGenerator translation = new PythonCodeGenerator();
         translation.setScopes(scopes);
-        translation.visit(root);
+        String code = translation.visit(root);
+        
+
+        // Write the buffer content to a file
+
+        String outputPath = "pyGenerated/" + fileName.replace(".ofp", ".py");
+        try (FileWriter writer = new FileWriter(outputPath)) {
+            writer.write(code);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

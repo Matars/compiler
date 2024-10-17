@@ -2,6 +2,9 @@ package ofppackage;
 
 import java.util.HashMap;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -64,6 +67,7 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
     public String visitMainFunc(OFPParser.MainFuncContext ctx) {
         currentScope = scopes.get(ctx);
         String start = "#\n# Program entry point - main\n#\n";
+        start += "if __name__ == '__main__':\n";
         depth = 0; // No indentation expected here ==> reset depth
         String body = visit(ctx.getChild(3)); // String for main body
         currentScope = currentScope.getEnclosingScope();
@@ -82,8 +86,8 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
     public String visitMethodFunc(OFPParser.MethodFuncContext ctx) {
         String funcstr = "def" + " " + ctx.getChild(1).getText();
 
-
-        // get variable names in arglist with loop, index 2, 4, 6, ... with comma in between
+        // get variable names in arglist with loop, index 2, 4, 6, ... with comma in
+        // between
         String argList = "";
         int childCount = ctx.getChild(2).getChildCount();
 
@@ -93,10 +97,8 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
                 argList += ", ";
             }
         }
-        
 
         funcstr += "(" + argList + ")";
-
 
         funcstr += ":\n";
         funcstr += visit(ctx.getChild(3));
@@ -162,7 +164,7 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitAssignStmt(OFPParser.AssignStmtContext ctx) {
-        return visit(ctx.getChild(0).getChild(0)) + " = " + visit(ctx.getChild(0).getChild(2)) + "\n";
+        return visit(ctx.getChild(0)) + " = " + visit(ctx.getChild(2)) + "\n";
 
     }
 
@@ -176,7 +178,7 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitDeclareStmt(OFPParser.DeclareStmtContext ctx) {
-        return "pass";
+        return "pass\n";
     }
 
     /**
@@ -215,7 +217,11 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitArrayAssignStmt(OFPParser.ArrayAssignStmtContext ctx) {
-        return ctx.getText();
+        String str = "";
+        str += ctx.getChild(0).getChild(1).getText();
+        str += " = ";
+        str += '[' + visit(ctx.getChild(0).getChild(4)) + ']' + '\n';
+        return str;
     }
 
     /**
@@ -228,10 +234,38 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitIfStmt(OFPParser.IfStmtContext ctx) {
-        System.out.println(depth);
-        String ifString = visit(ctx.getChild(0))  + visit(ctx.getChild(1)) + ":\n";
-        ifString += visit(ctx.getChild(2));
+        String ifString = visit(ctx.getChild(0)) + '(' + visit(ctx.getChild(1).getChild(1)) + ')' + ": ";
 
+        if (visit(ctx.getChild(2).getChild(0)).equals("{")) {
+            ifString += '\n' + visit(ctx.getChild(2));
+        } else {
+            ifString += visit(ctx.getChild(2).getChild(0));
+        }
+
+        // check if there is an else statement
+        if (ctx.getChildCount() > 3) {
+            if (ctx.getChild(3).getText().equals("else")) {
+                if (ctx.getChild(4).getChild(0).getChild(0).getText().equals("if")) {
+                    ifString += indent(depth) + "elif " + visit(ctx.getChild(4).getChild(0).getChild(1)) + ":\n";
+
+                    if (visit(ctx.getChild(4).getChild(0).getChild(3)).equals("{")) {
+                        ifString += visit(ctx.getChild(4).getChild(0));
+                    } else {
+                        ifString += indent(depth + 1) + visit(ctx.getChild(4).getChild(0).getChild(2).getChild(0));
+                    }
+                }
+
+            } else {
+
+                ifString += "else: ";
+                if (visit(ctx.getChild(4).getChild(0)).equals("{")) {
+                    ifString += '\n' + visit(ctx.getChild(4));
+                } else {
+                    ifString += visit(ctx.getChild(4).getChild(0));
+                }
+            }
+
+        }
         return ifString;
     }
 
@@ -247,10 +281,7 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
     public String visitWhileStmt(OFPParser.WhileStmtContext ctx) {
         String whileString = visit(ctx.getChild(0)) + visit(ctx.getChild(1)) + ":\n";
 
-        for (int i = 1; i < ctx.getChild(2).getChildCount() - 1; i++) {
-
-            whileString += indent(depth) + visit(ctx.getChild(2).getChild(i));
-        }
+        whileString += visit(ctx.getChild(2));
 
         return whileString;
     }
@@ -278,7 +309,11 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitCallMethodStmt(OFPParser.CallMethodStmtContext ctx) {
-        return ctx.getText();
+        String str = "";
+        for (int i = 0; i < ctx.getChild(0).getChildCount() - 1; i++) {
+            str += visit(ctx.getChild(0).getChild(i));
+        }
+        return str + "\n";
     }
 
     /**
@@ -291,7 +326,10 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitPrintStmt(OFPParser.PrintStmtContext ctx) {
-        return "print(" + visit(ctx.getChild(0).getChild(2)) + ")" + "\n";
+        String str = "";
+        str += visit(ctx.getChild(0).getChild(2));
+
+        return "print(" + str + ")" + "\n";
     }
 
     @Override
@@ -387,7 +425,8 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitLength(OFPParser.LengthContext ctx) {
-        return ctx.getText();
+
+        return "len(" + visit(ctx.getChild(0)) + ")";
     }
 
     /**
@@ -400,7 +439,13 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitNewArray(OFPParser.NewArrayContext ctx) {
-        return ctx.getText();
+        String str = "";
+        str += '[';
+        str += 0;
+        str += ']';
+        str += " * ";
+        str += visit(ctx.getChild(3));
+        return str;
     }
 
     /**
@@ -430,7 +475,11 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitParenthesis(OFPParser.ParenthesisContext ctx) {
-        return ctx.getText();
+        String str = "";
+        for (int i = 0; i < ctx.getChild(1).getChildCount(); i++) {
+            str += visit(ctx.getChild(1).getChild(i));
+        }
+        return "(" + str + ")";
     }
 
     /**
@@ -473,7 +522,13 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitArrayAccess(OFPParser.ArrayAccessContext ctx) {
-        return ctx.getText();
+        String str = "";
+        str += visit(ctx.getChild(0));
+        str += '[';
+        str += visit(ctx.getChild(2));
+        str += ']';
+
+        return str;
     }
 
     /**
@@ -505,7 +560,6 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
     public String visitIdExpr(OFPParser.IdExprContext ctx) {
         return ctx.getText();
     }
-
 
     /**
      * {@inheritDoc}
@@ -543,6 +597,7 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
      */
     @Override
     public String visitMethodCall(OFPParser.MethodCallContext ctx) {
+
         return ctx.getText();
     }
 
