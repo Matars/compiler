@@ -1,11 +1,30 @@
-def maxOfThree(a, b, c):
+def foo():
     pass
-    if(a>b): 
-        if(a>c): return a
-        elif (c>a):
-            return c
+    if(f):
+        b = 0
+    elif(f):
+        b = 1
+    elif(f):
+        b = 2
+    elif(f):
+        b = 3
+    else:
+        return 0
 #
 # Program entry point - main
 #
 if __name__ == '__main__':
-    maxOfThree(5,6,7)
+    pass
+    if(f):
+        b = 0
+    elif(f):
+        b = 1
+    elif(f):
+        b = 2
+    elif(f):
+        b = 3
+    else:
+        b = 4
+
+
+

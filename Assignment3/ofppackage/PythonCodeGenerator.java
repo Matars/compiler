@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -224,49 +225,60 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
         return str;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.
-     * </p>
-     */
     @Override
     public String visitIfStmt(OFPParser.IfStmtContext ctx) {
-        String ifString = visit(ctx.getChild(0)) + '(' + visit(ctx.getChild(1).getChild(1)) + ')' + ": ";
+        // System.out.println(ctx.getChildCount()); // returns 3 for if, 5 for if else
+        String str = "";
 
-        if (visit(ctx.getChild(2).getChild(0)).equals("{")) {
-            ifString += '\n' + visit(ctx.getChild(2));
-        } else {
-            ifString += visit(ctx.getChild(2).getChild(0));
-        }
+        if (ctx.getChild(2).getChild(0).getText().equals("{")) {
 
-        // check if there is an else statement
-        if (ctx.getChildCount() > 3) {
-            if (ctx.getChild(3).getText().equals("else")) {
-                if (ctx.getChild(4).getChild(0).getChild(0).getText().equals("if")) {
-                    ifString += indent(depth) + "elif " + visit(ctx.getChild(4).getChild(0).getChild(1)) + ":\n";
+            ParseTree ifCond = ctx.getChild(1); // condition
+            ParseTree ifBlock = ctx.getChild(2); // if block
+            str = "if" + visit(ifCond) + ":\n";
+            str += visit(ifBlock);
 
-                    if (visit(ctx.getChild(4).getChild(0).getChild(3)).equals("{")) {
-                        ifString += visit(ctx.getChild(4).getChild(0));
-                    } else {
-                        ifString += indent(depth + 1) + visit(ctx.getChild(4).getChild(0).getChild(2).getChild(0));
-                    }
-                }
+            if (ctx.getChildCount() > 3) {
 
-            } else {
+                if (ctx.getChild(4).getChild(0).getText().startsWith("if")) {
 
-                ifString += "else: ";
-                if (visit(ctx.getChild(4).getChild(0)).equals("{")) {
-                    ifString += '\n' + visit(ctx.getChild(4));
+                    ParseTree elseIfBlock = ctx.getChild(4).getChild(0); // else block
+
+                    str += indent(depth) + "el";
+                    str += visit(elseIfBlock) + '\n';
                 } else {
-                    ifString += visit(ctx.getChild(4).getChild(0));
+                    ParseTree elseIfBlock = ctx.getChild(4); // e block
+                    str += indent(depth) + "else:\n";
+                    str += visit(elseIfBlock);
+                }
+            }
+        } else {
+            ParseTree ifCond = ctx.getChild(1); // condition
+            ParseTree ifBlock = ctx.getChild(2).getChild(0); // if block
+            str = "if" + visit(ifCond) + ":\n";
+            // block withotu curly braces does not seem to act as block
+            str += indent(depth + 1) + visit(ifBlock);
+
+            if (ctx.getChildCount() > 3) {
+
+                if (ctx.getChild(4).getChild(0).getText().startsWith("if")) {
+
+                    ParseTree elseIfBlock = ctx.getChild(4).getChild(0); // else block
+
+                    System.out.println("here: " + elseIfBlock.getText());
+
+                    str += indent(depth) + "el";
+
+                    str += visit(elseIfBlock);
+                } else {
+                    ParseTree elseIfBlock = ctx.getChild(4); // e block
+                    str += indent(depth) + "else:\n";
+                    str += indent(depth) + visit(elseIfBlock);
                 }
             }
 
         }
-        return ifString;
+
+        return str;
     }
 
     /**
