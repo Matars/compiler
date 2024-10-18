@@ -1,20 +1,23 @@
 def maxOfTwo(a, b):
-    if(a>b): return a
+    if(a>b):
+        return a
     else:
-return b
+        return b
 def maxOfThree(a, b, c):
-    if(a>b): 
-        if(a>c): return a
+    if(a>b):
+        if(a>c):
+            return a
+        elif(c>a):
+            return c
         else:
-if(c>a): return c
-        else:
-return c
+            return c
     else:
-        if(b>c): return b
+        if(b>c):
+            return b
+        elif(c>b):
+            return c
         else:
-if(c>b): return c
-        else:
-return c
+            return c
 #
 # Program entry point - main
 #

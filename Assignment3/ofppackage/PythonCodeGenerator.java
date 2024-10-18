@@ -267,12 +267,11 @@ public class PythonCodeGenerator extends OFPBaseVisitor<String> {
                     System.out.println("here: " + elseIfBlock.getText());
 
                     str += indent(depth) + "el";
-
                     str += visit(elseIfBlock);
                 } else {
-                    ParseTree elseIfBlock = ctx.getChild(4); // e block
+                    ParseTree elseIfBlock = ctx.getChild(4).getChild(0); // e block
                     str += indent(depth) + "else:\n";
-                    str += indent(depth) + visit(elseIfBlock);
+                    str += indent(depth + 1) + visit(elseIfBlock);
                 }
             }
 

@@ -31,7 +31,7 @@ public class main {
         // get cwd
         String cwd = System.getProperty("user.dir");
         String testDir = cwd + "/ofp_examples_2024/";
-        String fileName = "tmp.ofp";
+        String fileName = "max.ofp";
         String testProgram = testDir + fileName;
 
         // Check if input ends with ".ofp"
