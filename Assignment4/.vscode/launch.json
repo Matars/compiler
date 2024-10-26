@@ -1,0 +1,68 @@
+{
+  "configurations": [
+    {
+        "type": "java",
+        "name": "main",
+        "request": "launch",
+        "mainClass": "ofppackage.main",
+        "projectName": "Assignment4_1e8ddc1e"
+    },
+    {
+        "type": "java",
+        "name": "HW",
+        "request": "launch",
+        "mainClass": "asm.HW",
+        "projectName": "Assignment4_1e8ddc1e"
+    },
+    {
+        "type": "java",
+        "name": "Plus",
+        "request": "launch",
+        "mainClass": "asm.Plus",
+        "projectName": "Assignment4_1e8ddc1e"
+    },
+    {
+        "type": "java",
+        "name": "main",
+        "request": "launch",
+        "mainClass": "ofppackage.main",
+        "projectName": "Assignment3_1e8ddc1d"
+    },
+    {
+        "type": "java",
+        "name": "main",
+        "request": "launch",
+        "mainClass": "ofppackage.main",
+        "projectName": "Assignment3_f0902e98"
+    },
+    {
+        "type": "java",
+        "name": "main",
+        "request": "launch",
+        "mainClass": "ofppackage.main",
+        "projectName": "Assignment2_f0902e97"
+    },
+    {
+        "type": "java",
+        "name": "Main",
+        "request": "launch",
+        "mainClass": "ofppackage.Main",
+        "projectName": "Assignment2_1e8ddc1c"
+    },
+    {
+        "type": "java",
+        "name": "Main",
+        "request": "launch",
+        "mainClass": "ofp.Main",
+        "projectName": "Assignment2_1e8ddc1c"
+    },
+    {
+        "type": "antlr-debug",
+        "request": "launch",
+        "name": "Debug Expressions",
+        "grammar": "/Users/matar/School/compiler/Assignment2/OFP.g4",
+        "input": "/Users/matar/School/compiler/Assignment2/ofp_examples_2024/max.ofp",
+        "visualParseTree": true
+    }
+]
+}
