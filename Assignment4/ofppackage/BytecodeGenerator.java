@@ -5,6 +5,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
+import org.objectweb.asm.Label;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import generated.OFPBaseVisitor;
 import generated.OFPParser;
@@ -66,8 +67,20 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     }
 
     @Override
-    public Type visitDeclareAssignStmt(OFPParser.DeclareAssignStmtContext ctx) {
+    public Type visitAssignStmt(OFPParser.AssignStmtContext ctx) {
+        Symbol var = currentscope.resolve(ctx.getChild(0).getText());
+        Type eType = visit(ctx.getChild(2));
 
+        int stackpointer = currentFunction.indexOf(var);
+
+        mg.storeLocal(stackpointer, eType);
+
+        return null;
+
+    }
+
+    @Override
+    public Type visitDeclareAssignStmt(OFPParser.DeclareAssignStmtContext ctx) {
         Symbol var = currentscope.resolve(ctx.getChild(1).getText());
         Type eType = visit(ctx.getChild(3));
 
@@ -76,6 +89,43 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         mg.storeLocal(stackpointer, eType);
 
         return null;
+    }
+
+    @Override
+    public Type visitWhileStmt(OFPParser.WhileStmtContext ctx) {
+        System.out.println(ctx.getChild(0));
+        System.out.println(ctx.getChild(1).getText());
+        System.out.println(ctx.getChild(2).getText());
+
+        Label exitWhile = new Label();
+        mg.goTo(exitWhile);
+        Label enterWhile = mg.mark();
+
+        // visit block
+        visit(ctx.getChild(2));
+
+        mg.mark(exitWhile);
+
+        // load condition
+        visit(ctx.getChild(1));
+
+        // compare condition
+        String comp = ctx.getChild(1).getChild(1).getChild(1).getText();
+
+        if (comp.equals("<")) {
+            mg.ifICmp(GeneratorAdapter.LT, enterWhile);
+        } else if (comp.equals(">")) {
+            mg.ifICmp(GeneratorAdapter.GT, enterWhile);
+        } else if (comp.equals("==")) {
+            mg.ifICmp(GeneratorAdapter.EQ, enterWhile);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Type visitParenthesis(OFPParser.ParenthesisContext ctx) {
+        return visitChildren(ctx);
     }
 
     @Override

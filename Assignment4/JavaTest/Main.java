@@ -1,7 +1,10 @@
 public class Main {
     public static void main(String[] args) {
-        int a = 5;
-        int b = 5;
-        System.out.println(a + b);
+        int a = 1;
+        int b = 2;
+        while (a<b) {
+            a = a + 1;
+            
+        }
     }
 }
