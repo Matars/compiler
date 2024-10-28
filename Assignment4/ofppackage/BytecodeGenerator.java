@@ -52,12 +52,65 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
         // Visit the function body
         currentFunction = (FunctionSymbol) currentscope.resolve("main");
+
         visit(ctx.stmtBlock());
 
         // Add return
         mg.returnValue();
         mg.endMethod();
         return null;
+    }
+
+    @Override
+    public Type visitMethodFunc(OFPParser.MethodFuncContext ctx) {
+
+        String type = ctx.getChild(0).getText();
+        String name = ctx.getChild(1).getText();
+        String args = ctx.getChild(2).getText();
+        String body = ctx.getChild(3).getText();
+
+        currentFunction = (FunctionSymbol) currentscope.resolve(name);
+
+        Method m = Method.getMethod(type + " " + name + "(int,int)");
+        mg = new GeneratorAdapter(ACC_PUBLIC + ACC_STATIC, m, null, null, cw);
+
+        mg.loadArg(0);
+        mg.loadArg(1);
+
+        visit(ctx.stmtBlock());
+
+        mg.returnValue();
+
+        mg.endMethod();
+
+        return null;
+    }
+
+    @Override
+    public Type visitCallMethodStmt(OFPParser.CallMethodStmtContext ctx) {
+        String name = ctx.getChild(0).getChild(0).getText();
+        String args = ctx.getChild(0).getChild(2).getText();
+
+        mg.invokeStatic(Type.getType("L" + className + ";"), Method.getMethod("int" +
+                " " + name + "(int,int)"));
+
+        mg.storeLocal(3, Type.INT_TYPE);
+        mg.loadLocal(3, Type.INT_TYPE);
+
+        return null;
+    }
+
+    @Override
+    public Type visitMethodCall(OFPParser.MethodCallContext ctx) {
+        String name = ctx.getChild(0).getText();
+        String args = ctx.getChild(2).getText();
+
+        visitChildren(ctx);
+
+        mg.invokeStatic(Type.getType("L" + className + ";"), Method.getMethod("int" +
+                " " + name + "(int,int)"));
+
+        return Type.INT_TYPE;
     }
 
     @Override
@@ -76,11 +129,11 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         mg.storeLocal(stackpointer, eType);
 
         return null;
-
     }
 
     @Override
     public Type visitDeclareAssignStmt(OFPParser.DeclareAssignStmtContext ctx) {
+
         Symbol var = currentscope.resolve(ctx.getChild(1).getText());
         Type eType = visit(ctx.getChild(3));
 
@@ -212,7 +265,9 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
     @Override
     public Type visitIdExpr(OFPParser.IdExprContext ctx) {
+
         Symbol var = currentscope.resolve(ctx.getText());
+
         int stackpointer = currentFunction.indexOf(var);
 
         if (var.getType().toString().equals("int")) {
@@ -245,7 +300,7 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     @Override
     public Type visitIntExpr(OFPParser.IntExprContext ctx) {
         mg.push(new Integer(ctx.getText()));
-        return Type.getType(int.class);
+        return Type.INT_TYPE;
     }
 
     public byte[] getBytecode() {

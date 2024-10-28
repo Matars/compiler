@@ -38,4 +38,8 @@ public class FunctionSymbol extends Symbol {
         return indices.get(sym);
     }
 
+    public String getIndices() {
+        return indices.toString();
+    }
+
 }

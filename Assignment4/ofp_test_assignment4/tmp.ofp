@@ -1,10 +1,11 @@
 
 void main() {
-    int a = 10;
-    int b = 100;
-    
-    while (b > a){
-        a = a + 1;
-    }
-    print(a);
+    int A = 15;
+    int B = 25;
+    int p = plus(A, B);
+    println(p);
+}
+
+int plus(int a, int b){
+    return 5;
 }

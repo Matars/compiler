@@ -81,6 +81,8 @@ public class BuildSymbolListener extends OFPBaseListener {
             FunctionSymbol funcSymbol = new FunctionSymbol(currentFunctionType, currentFunctionString);
             globalScope.addSymbol(funcSymbol);
             Scope funcScope = new Scope(globalScope);
+
+            currentFunction = funcSymbol;
             funcScope.setName("function" + ctx.start.getLine());
             currentScope = funcScope;
             scopes.put(ctx, funcScope);
@@ -133,6 +135,7 @@ public class BuildSymbolListener extends OFPBaseListener {
                 Symbol param = new Symbol(varType, varName);
                 currentScope.addSymbol(param);
                 currentFuncSymbol.addParameter(param);
+                currentFuncSymbol.addVariable(param);
 
             }
         }
@@ -158,7 +161,9 @@ public class BuildSymbolListener extends OFPBaseListener {
                     errorCount + "\t[BUILD] Duplicate declaration in function " + currentFunctionString + ": "
                             + name);
         } else {
-            currentScope.addSymbol(new Symbol(type, name));
+            Symbol sym = new Symbol(type, name);
+            currentScope.addSymbol(sym);
+            currentFunction.addVariable(sym);
         }
     }
 

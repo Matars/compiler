@@ -1,10 +1,12 @@
 public class Main {
     public static void main(String[] args) {
-        int a = 1;
-        int b = 2;
-        while (a<b) {
-            a = a + 1;
-            
-        }
+        int A = 25;
+        int B = 5;
+        plus(A, B);
     }
+
+    public static int plus(int a, int b) {
+        return a + b;
+    }
+
 }
