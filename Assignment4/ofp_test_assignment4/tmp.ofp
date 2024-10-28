@@ -2,10 +2,12 @@
 void main() {
     int A = 15;
     int B = 25;
-    int p = plus(A, B);
-    println(p);
+    int P = A + B;
+    println(P);
+    string sum = plus(A, B, 5, 10);
+    println(sum);
 }
 
-int plus(int a, int b){
-    return 5;
+string plus(int a, int b, int c, int d){
+    return "test";
 }

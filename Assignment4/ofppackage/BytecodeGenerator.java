@@ -6,6 +6,9 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.Label;
+
+import java.util.ArrayList;
+
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import generated.OFPBaseVisitor;
 import generated.OFPParser;
@@ -63,24 +66,28 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
     @Override
     public Type visitMethodFunc(OFPParser.MethodFuncContext ctx) {
-
         String type = ctx.getChild(0).getText();
         String name = ctx.getChild(1).getText();
-        String args = ctx.getChild(2).getText();
-        String body = ctx.getChild(3).getText();
 
+        currentscope = scopes.get(ctx);
         currentFunction = (FunctionSymbol) currentscope.resolve(name);
 
-        Method m = Method.getMethod(type + " " + name + "(int,int)");
+        // Build the method signature based on parameter count and types
+        StringBuilder methodSignature = new StringBuilder();
+        methodSignature.append(convertType(type)).append(" ").append(name).append("(");
+
+        ArrayList<Symbol> params = currentFunction.getParameters();
+        for (int i = 0; i < params.size(); i++) {
+            if (i > 0)
+                methodSignature.append(",");
+            methodSignature.append(convertType(params.get(i).getType().toString()));
+        }
+        methodSignature.append(")");
+
+        Method m = Method.getMethod(methodSignature.toString());
         mg = new GeneratorAdapter(ACC_PUBLIC + ACC_STATIC, m, null, null, cw);
 
-        mg.loadArg(0);
-        mg.loadArg(1);
-
         visit(ctx.stmtBlock());
-
-        mg.returnValue();
-
         mg.endMethod();
 
         return null;
@@ -89,13 +96,24 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     @Override
     public Type visitCallMethodStmt(OFPParser.CallMethodStmtContext ctx) {
         String name = ctx.getChild(0).getChild(0).getText();
-        String args = ctx.getChild(0).getChild(2).getText();
 
-        mg.invokeStatic(Type.getType("L" + className + ";"), Method.getMethod("int" +
-                " " + name + "(int,int)"));
+        // Build method signature for call
+        FunctionSymbol func = (FunctionSymbol) currentscope.resolve(name);
+        String funcType = func.getType().toString();
 
-        mg.storeLocal(3, Type.INT_TYPE);
-        mg.loadLocal(3, Type.INT_TYPE);
+        StringBuilder methodSignature = new StringBuilder();
+        methodSignature.append(convertType(funcType)).append(" ").append(name).append("(");
+
+        ArrayList<Symbol> params = func.getParameters();
+        for (int i = 0; i < params.size(); i++) {
+            if (i > 0)
+                methodSignature.append(",");
+            methodSignature.append(convertType(params.get(i).getType().toString()));
+        }
+        methodSignature.append(")");
+
+        mg.invokeStatic(Type.getType("L" + className + ";"),
+                Method.getMethod(methodSignature.toString()));
 
         return null;
     }
@@ -103,14 +121,27 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     @Override
     public Type visitMethodCall(OFPParser.MethodCallContext ctx) {
         String name = ctx.getChild(0).getText();
-        String args = ctx.getChild(2).getText();
-
         visitChildren(ctx);
 
-        mg.invokeStatic(Type.getType("L" + className + ";"), Method.getMethod("int" +
-                " " + name + "(int,int)"));
+        // Build method signature for call
+        FunctionSymbol func = (FunctionSymbol) currentscope.resolve(name);
+        String funcType = func.getType().toString();
 
-        return Type.INT_TYPE;
+        StringBuilder methodSignature = new StringBuilder();
+        methodSignature.append(convertType(funcType)).append(" ").append(name).append("(");
+
+        ArrayList<Symbol> params = func.getParameters();
+        for (int i = 0; i < params.size(); i++) {
+            if (i > 0)
+                methodSignature.append(",");
+            methodSignature.append(convertType(params.get(i).getType().toString()));
+        }
+        methodSignature.append(")");
+
+        mg.invokeStatic(Type.getType("L" + className + ";"),
+                Method.getMethod(methodSignature.toString()));
+
+        return getAsmType(funcType);
     }
 
     @Override
@@ -265,26 +296,46 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
     @Override
     public Type visitIdExpr(OFPParser.IdExprContext ctx) {
-
         Symbol var = currentscope.resolve(ctx.getText());
-
         int stackpointer = currentFunction.indexOf(var);
 
+        // Check if this is a parameter
+        boolean isParameter = currentFunction.getParameters().contains(var);
+
         if (var.getType().toString().equals("int")) {
-            mg.loadLocal(stackpointer, Type.INT_TYPE);
+            if (isParameter) {
+                mg.loadArg(stackpointer);
+            } else {
+                mg.loadLocal(stackpointer, Type.INT_TYPE);
+            }
             return Type.INT_TYPE;
         } else if (var.getType().toString().equals("float")) {
-            // doulbe or float type?
-            mg.loadLocal(stackpointer, Type.DOUBLE_TYPE);
+            if (isParameter) {
+                mg.loadArg(stackpointer);
+            } else {
+                mg.loadLocal(stackpointer, Type.DOUBLE_TYPE);
+            }
             return Type.DOUBLE_TYPE;
         } else if (var.getType().toString().equals("char")) {
-            mg.loadLocal(stackpointer, Type.CHAR_TYPE);
+            if (isParameter) {
+                mg.loadArg(stackpointer);
+            } else {
+                mg.loadLocal(stackpointer, Type.CHAR_TYPE);
+            }
             return Type.CHAR_TYPE;
         } else if (var.getType().toString().equals("bool")) {
-            mg.loadLocal(stackpointer, Type.BOOLEAN_TYPE);
+            if (isParameter) {
+                mg.loadArg(stackpointer);
+            } else {
+                mg.loadLocal(stackpointer, Type.BOOLEAN_TYPE);
+            }
             return Type.BOOLEAN_TYPE;
         } else if (var.getType().toString().equals("string")) {
-            mg.loadLocal(stackpointer, Type.getType(String.class));
+            if (isParameter) {
+                mg.loadArg(stackpointer);
+            } else {
+                mg.loadLocal(stackpointer, Type.getType(String.class));
+            }
             return Type.getType(String.class);
         } else {
             throw new RuntimeException("Unknown type " + var.getType());
@@ -305,6 +356,53 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
     public byte[] getBytecode() {
         return cw.toByteArray();
+    }
+
+    @Override
+    public Type visitReturnStmt(OFPParser.ReturnStmtContext ctx) {
+        visit(ctx.getChild(1));
+        mg.returnValue();
+        return null;
+    }
+
+    // Helper method to convert OFP types to Java types
+    private String convertType(String ofpType) {
+        switch (ofpType.toLowerCase()) {
+            case "int":
+                return "int";
+            case "float":
+                return "double";
+            case "bool":
+                return "boolean";
+            case "char":
+                return "char";
+            case "string":
+                return "String";
+            case "void":
+                return "void";
+            default:
+                throw new RuntimeException("Unknown type: " + ofpType);
+        }
+    }
+
+    // Helper method to get ASM Type
+    private Type getAsmType(String ofpType) {
+        switch (ofpType.toLowerCase()) {
+            case "int":
+                return Type.INT_TYPE;
+            case "float":
+                return Type.DOUBLE_TYPE;
+            case "bool":
+                return Type.BOOLEAN_TYPE;
+            case "char":
+                return Type.CHAR_TYPE;
+            case "string":
+                return Type.getType(String.class);
+            case "void":
+                return Type.VOID_TYPE;
+            default:
+                throw new RuntimeException("Unknown type: " + ofpType);
+        }
     }
 
 }
