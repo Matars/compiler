@@ -33,7 +33,7 @@ public class main {
         // get cwd
         String cwd = System.getProperty("user.dir");
         String testDir = cwd + "/ofp_test_assignment4/";
-        String fileName = "tmp.ofp";
+        String fileName = "while.ofp";
         String testProgram = testDir + fileName;
 
         // Check if input ends with ".ofp"

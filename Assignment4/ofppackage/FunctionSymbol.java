@@ -24,7 +24,13 @@ public class FunctionSymbol extends Symbol {
     public void addVariable(Symbol var) {
         // add if not already a parameter
         if (!parameters.contains(var)) {
-            indices.put(var, localVarIndex++);
+            // if float, increment index by 2
+            if (var.getType().toString().equals("float")) {
+                localVarIndex += 2;
+            }else{
+                localVarIndex++;
+            }
+            indices.put(var, localVarIndex);
         }
     }
 

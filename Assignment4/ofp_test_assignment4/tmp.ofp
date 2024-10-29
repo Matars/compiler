@@ -1,13 +1,7 @@
-
 void main() {
-    int A = 15;
-    int B = 25;
-    int P = A + B;
-    println(P);
-    string sum = plus(A, B, 5, 10);
-    println(sum);
-}
-
-string plus(int a, int b, int c, int d){
-    return "test";
+    int a = 1;
+    while (a < 10) {
+        a = a + 1;
+        print("test");
+    }
 }

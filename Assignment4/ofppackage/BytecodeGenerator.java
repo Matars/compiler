@@ -145,6 +145,12 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     }
 
     @Override
+    public Type visitIfStmt(OFPParser.IfStmtContext ctx) {
+        System.out.println("If statement");
+        return visitChildren(ctx);
+    }
+
+    @Override
     public Type visitStmtBlock(OFPParser.StmtBlockContext ctx) {
         currentscope = scopes.get(ctx);
         return visitChildren(ctx);
@@ -153,10 +159,10 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     @Override
     public Type visitAssignStmt(OFPParser.AssignStmtContext ctx) {
         Symbol var = currentscope.resolve(ctx.getChild(0).getText());
-        Type eType = visit(ctx.getChild(2));
+        Type eType = getAsmType(var.getType().toString());
+        visit(ctx.getChild(2));
 
         int stackpointer = currentFunction.indexOf(var);
-
         mg.storeLocal(stackpointer, eType);
 
         return null;
@@ -166,7 +172,8 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     public Type visitDeclareAssignStmt(OFPParser.DeclareAssignStmtContext ctx) {
 
         Symbol var = currentscope.resolve(ctx.getChild(1).getText());
-        Type eType = visit(ctx.getChild(3));
+        Type eType = getAsmType(ctx.getChild(0).getText());
+        visit(ctx.getChild(3));
 
         int stackpointer = currentFunction.indexOf(var);
 
@@ -176,62 +183,82 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     }
 
     @Override
-    public Type visitWhileStmt(OFPParser.WhileStmtContext ctx) {
-        System.out.println(ctx.getChild(0));
-        System.out.println(ctx.getChild(1).getText());
-        System.out.println(ctx.getChild(2).getText());
-
-        Label exitWhile = new Label();
-        mg.goTo(exitWhile);
-        Label enterWhile = mg.mark();
-
-        // visit block
-        visit(ctx.getChild(2));
-
-        mg.mark(exitWhile);
-
-        // load condition
-        visit(ctx.getChild(1));
-
-        // compare condition
-        String comp = ctx.getChild(1).getChild(1).getChild(1).getText();
-
-        if (comp.equals("<")) {
-            mg.ifICmp(GeneratorAdapter.LT, enterWhile);
-        } else if (comp.equals(">")) {
-            mg.ifICmp(GeneratorAdapter.GT, enterWhile);
-        } else if (comp.equals("==")) {
-            mg.ifICmp(GeneratorAdapter.EQ, enterWhile);
-        }
-
+    public Type visitDeclareStmt(OFPParser.DeclareStmtContext ctx) {
         return null;
     }
 
     @Override
-    public Type visitParenthesis(OFPParser.ParenthesisContext ctx) {
+    public Type visitWhileStmt(OFPParser.WhileStmtContext ctx) {
+        Label conditionLabel = new Label();
+        Label loopBody = new Label();
+        Label endWhile = new Label(); // Add end label
+
+        // Jump to condition check first
+        mg.goTo(conditionLabel);
+
+        // Loop body
+        mg.mark(loopBody);
+        visit(ctx.getChild(2));
+
+        // Condition check
+        mg.mark(conditionLabel);
+        visit(ctx.getChild(1)); // This loads both comparison values onto stack
+
+        // Compare and branch based on condition
+        String comp = ctx.getChild(1).getChild(1).getChild(1).getText();
+        switch (comp) {
+            case "<":
+                mg.ifICmp(GeneratorAdapter.LT, loopBody);
+                break;
+            case ">":
+                mg.ifICmp(GeneratorAdapter.GT, loopBody);
+                break;
+            case "==":
+                mg.ifICmp(GeneratorAdapter.EQ, loopBody);
+                break;
+        }
+
+        mg.mark(endWhile); // Mark end of while loop
+        return null;
+    }
+
+    @Override
+    public Type visitComp(OFPParser.CompContext ctx) {
         return visitChildren(ctx);
     }
 
     @Override
+    public Type visitParenthesis(OFPParser.ParenthesisContext ctx) {
+        return visit(ctx.getChild(1));
+    }
+
+    @Override
     public Type visitAddsub(OFPParser.AddsubContext ctx) {
-        visitChildren(ctx);
+        // Visit left and right operand
+        Type leftType = visit(ctx.getChild(0));
+        Type rightType = visit(ctx.getChild(2));
+
+        Type eType = leftType;
 
         if (ctx.getChild(1).getText().equals("+"))
-            mg.math(GeneratorAdapter.ADD, Type.INT_TYPE);
+            mg.math(GeneratorAdapter.ADD, eType);
         else
-            mg.math(GeneratorAdapter.SUB, Type.INT_TYPE);
-        return Type.INT_TYPE;
+            mg.math(GeneratorAdapter.SUB, eType);
+
+        return eType;
     }
 
     @Override
     public Type visitMultdiv(OFPParser.MultdivContext ctx) {
         visitChildren(ctx);
 
+        Type eType = visit(ctx.getChild(0));
+
         if (ctx.getChild(1).getText().equals("*"))
-            mg.math(GeneratorAdapter.MUL, Type.INT_TYPE);
+            mg.math(GeneratorAdapter.MUL, eType);
         else
-            mg.math(GeneratorAdapter.DIV, Type.INT_TYPE);
-        return Type.INT_TYPE;
+            mg.math(GeneratorAdapter.DIV, eType);
+        return eType;
     }
 
     @Override
@@ -296,10 +323,12 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
     @Override
     public Type visitIdExpr(OFPParser.IdExprContext ctx) {
+
         Symbol var = currentscope.resolve(ctx.getText());
         int stackpointer = currentFunction.indexOf(var);
 
         // Check if this is a parameter
+        // should be done in argList instead for cleaner code
         boolean isParameter = currentFunction.getParameters().contains(var);
 
         if (var.getType().toString().equals("int")) {
@@ -352,6 +381,12 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     public Type visitIntExpr(OFPParser.IntExprContext ctx) {
         mg.push(new Integer(ctx.getText()));
         return Type.INT_TYPE;
+    }
+
+    @Override
+    public Type visitFloatExpr(OFPParser.FloatExprContext ctx) {
+        mg.push(new Double(ctx.getText()));
+        return Type.DOUBLE_TYPE;
     }
 
     public byte[] getBytecode() {
