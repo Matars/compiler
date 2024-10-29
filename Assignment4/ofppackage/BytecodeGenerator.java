@@ -151,41 +151,27 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         Label elseLabel = new Label();
         Label endLabel = new Label();
 
-        // Generate condition code
-        Type condType = visit(ctx.getChild(1)); // Visit the condition expression
+        // Visit condition - this will put boolean result on stack
+        visit(ctx.getChild(1)); // Visit the condition expression
 
-        // Compare and branch to else block if condition is false
-        ParseTree comp = ctx.getChild(1).getChild(1).getChild(1);
+        // If condition is false, jump to else block
+        mg.ifZCmp(GeneratorAdapter.EQ, elseLabel);
 
-        if (condType == Type.BOOLEAN_TYPE) {
-            mg.ifZCmp(GeneratorAdapter.EQ, elseLabel);
-        } else {
-            String compString = comp.getText();
+        // Visit 'then' block
+        visit(ctx.getChild(2));
 
-            switch (compString) {
-                case "<":
-                    mg.ifCmp(condType, GeneratorAdapter.GE, elseLabel);
-                    break;
-                case ">":
-                    mg.ifCmp(condType, GeneratorAdapter.LE, elseLabel);
-                    break;
-                case "==":
-                    mg.ifCmp(condType, GeneratorAdapter.NE, elseLabel);
-                    break;
-            }
-        }
-
-        visit(ctx.getChild(2)); // Visit the 'then' block
-
+        // Jump over else block
         mg.goTo(endLabel);
 
+        // Else block
         mg.mark(elseLabel);
-
-        if (ctx.getChild(4) != null) { // If there's an else block
-            visit(ctx.getChild(4)); // Visit the 'else' block
+        if (ctx.getChild(4) != null) {
+            visit(ctx.getChild(4));
         }
 
+        // End of if statement
         mg.mark(endLabel);
+
         return null;
     }
 
@@ -229,45 +215,70 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     @Override
     public Type visitWhileStmt(OFPParser.WhileStmtContext ctx) {
         Label conditionLabel = new Label();
-        Label loopBody = new Label();
-        Label endWhile = new Label(); // Add end label
+        Label endWhile = new Label();
 
-        // Jump to condition check first
+        // Mark the start of the condition
+        mg.mark(conditionLabel);
+
+        // Visit condition - this will put comparison values on stack
+        visit(ctx.getChild(1)); // Visit the comparison expression
+
+        // Branch to end if condition is false
+        mg.ifZCmp(GeneratorAdapter.EQ, endWhile);
+
+        // Execute loop body
+        visit(ctx.getChild(2));
+
+        // Jump back to condition
         mg.goTo(conditionLabel);
 
-        // Loop body
-        mg.mark(loopBody);
-        Type condType = visit(ctx.getChild(2));
+        // Mark end of loop
+        mg.mark(endWhile);
 
-        // Condition check
-        mg.mark(conditionLabel);
-        visit(ctx.getChild(1)); // This loads both comparison values onto stack
-
-        // Compare and branch based on condition
-        String comp = ctx.getChild(1).getChild(1).getChild(1).getText();
-        switch (comp) {
-            case "<":
-                mg.ifCmp(condType, GeneratorAdapter.LT, loopBody);
-                break;
-            case ">":
-                mg.ifCmp(condType, GeneratorAdapter.GT, loopBody);
-                break;
-            case "==":
-                mg.ifCmp(condType, GeneratorAdapter.EQ, loopBody);
-                break;
-        }
-
-        mg.mark(endWhile); // Mark end of while loop
         return null;
     }
 
     @Override
     public Type visitComp(OFPParser.CompContext ctx) {
+        // First evaluate LHS - puts value on stack
         Type LHS = visit(ctx.getChild(0));
-        String comp = ctx.getChild(1).getText();
+
+        // Then evaluate RHS - puts value on stack
         Type RHS = visit(ctx.getChild(2));
 
-        return LHS;
+        String comp = ctx.getChild(1).getText();
+
+        // Create label for comparison result
+        Label trueLabel = new Label();
+        Label endLabel = new Label();
+
+        // Do comparison and push boolean result
+        switch (comp) {
+            case "<":
+                mg.ifCmp(LHS, GeneratorAdapter.LT, trueLabel);
+                break;
+            case ">":
+                mg.ifCmp(LHS, GeneratorAdapter.GT, trueLabel);
+                break;
+            case "==":
+                mg.ifCmp(LHS, GeneratorAdapter.EQ, trueLabel);
+                break;
+            default:
+                throw new RuntimeException("Unknown comparison operator: " + comp);
+        }
+
+        // Push false and jump to end
+        mg.push(false);
+        mg.goTo(endLabel);
+
+        // Push true for true case
+        mg.mark(trueLabel);
+        mg.push(true);
+
+        // Mark end of comparison
+        mg.mark(endLabel);
+
+        return Type.BOOLEAN_TYPE;
     }
 
     @Override

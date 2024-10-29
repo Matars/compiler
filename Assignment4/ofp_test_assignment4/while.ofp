@@ -6,7 +6,6 @@ void main() {
 	println(res);    # 55
 }
 
-# Computes 1+2+3+...+n) 
 int sumUpTo(int n) {
 	int i = 1;
 	int sum = 0;
