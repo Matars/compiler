@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.FileWriter;
 import java.io.FileOutputStream;
 
+import org.antlr.v4.gui.Trees;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -33,7 +34,7 @@ public class main {
         // get cwd
         String cwd = System.getProperty("user.dir");
         String testDir = cwd + "/ofp_test_assignment4/";
-        String fileName = "while.ofp";
+        String fileName = "tmp.ofp";
         String testProgram = testDir + fileName;
 
         // Check if input ends with ".ofp"

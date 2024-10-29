@@ -9,6 +9,7 @@ import org.objectweb.asm.Label;
 
 import java.util.ArrayList;
 
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import generated.OFPBaseVisitor;
 import generated.OFPParser;
@@ -88,6 +89,7 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         mg = new GeneratorAdapter(ACC_PUBLIC + ACC_STATIC, m, null, null, cw);
 
         visit(ctx.stmtBlock());
+        mg.returnValue();
         mg.endMethod();
 
         return null;
@@ -146,8 +148,45 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
     @Override
     public Type visitIfStmt(OFPParser.IfStmtContext ctx) {
-        System.out.println("If statement");
-        return visitChildren(ctx);
+        Label elseLabel = new Label();
+        Label endLabel = new Label();
+
+        // Generate condition code
+        Type condType = visit(ctx.getChild(1)); // Visit the condition expression
+
+        // Compare and branch to else block if condition is false
+        ParseTree comp = ctx.getChild(1).getChild(1).getChild(1);
+
+        if (condType == Type.BOOLEAN_TYPE) {
+            mg.ifZCmp(GeneratorAdapter.EQ, elseLabel);
+        } else {
+            String compString = comp.getText();
+
+            switch (compString) {
+                case "<":
+                    mg.ifCmp(condType, GeneratorAdapter.GE, elseLabel);
+                    break;
+                case ">":
+                    mg.ifCmp(condType, GeneratorAdapter.LE, elseLabel);
+                    break;
+                case "==":
+                    mg.ifCmp(condType, GeneratorAdapter.NE, elseLabel);
+                    break;
+            }
+        }
+
+        visit(ctx.getChild(2)); // Visit the 'then' block
+
+        mg.goTo(endLabel);
+
+        mg.mark(elseLabel);
+
+        if (ctx.getChild(4) != null) { // If there's an else block
+            visit(ctx.getChild(4)); // Visit the 'else' block
+        }
+
+        mg.mark(endLabel);
+        return null;
     }
 
     @Override
@@ -198,7 +237,7 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
         // Loop body
         mg.mark(loopBody);
-        visit(ctx.getChild(2));
+        Type condType = visit(ctx.getChild(2));
 
         // Condition check
         mg.mark(conditionLabel);
@@ -208,13 +247,13 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         String comp = ctx.getChild(1).getChild(1).getChild(1).getText();
         switch (comp) {
             case "<":
-                mg.ifICmp(GeneratorAdapter.LT, loopBody);
+                mg.ifCmp(condType, GeneratorAdapter.LT, loopBody);
                 break;
             case ">":
-                mg.ifICmp(GeneratorAdapter.GT, loopBody);
+                mg.ifCmp(condType, GeneratorAdapter.GT, loopBody);
                 break;
             case "==":
-                mg.ifICmp(GeneratorAdapter.EQ, loopBody);
+                mg.ifCmp(condType, GeneratorAdapter.EQ, loopBody);
                 break;
         }
 
@@ -224,7 +263,22 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
     @Override
     public Type visitComp(OFPParser.CompContext ctx) {
-        return visitChildren(ctx);
+        Type LHS = visit(ctx.getChild(0));
+        String comp = ctx.getChild(1).getText();
+        Type RHS = visit(ctx.getChild(2));
+
+        return LHS;
+    }
+
+    @Override
+    public Type visitLength(OFPParser.LengthContext ctx) {
+        Type type = visit(ctx.getChild(0));
+
+        // Now that the string is on the stack, we can call length()
+        mg.invokeVirtual(Type.getType(String.class),
+                Method.getMethod("int length ()"));
+
+        return Type.INT_TYPE;
     }
 
     @Override
@@ -250,9 +304,11 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
     @Override
     public Type visitMultdiv(OFPParser.MultdivContext ctx) {
-        visitChildren(ctx);
 
-        Type eType = visit(ctx.getChild(0));
+        Type leftType = visit(ctx.getChild(0));
+        Type rightType = visit(ctx.getChild(2));
+
+        Type eType = leftType;
 
         if (ctx.getChild(1).getText().equals("*"))
             mg.math(GeneratorAdapter.MUL, eType);
@@ -373,6 +429,7 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
     @Override
     public Type visitStrExpr(OFPParser.StrExprContext ctx) {
+        System.out.println("Found String: " + ctx.getText());
         mg.push(ctx.getText());
         return Type.getType(String.class);
     }
@@ -389,8 +446,10 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         return Type.DOUBLE_TYPE;
     }
 
-    public byte[] getBytecode() {
-        return cw.toByteArray();
+    public Type visitBoolExpr(OFPParser.BoolExprContext ctx) {
+        boolean value = Boolean.parseBoolean(ctx.getText());
+        mg.push(value);
+        return Type.BOOLEAN_TYPE;
     }
 
     @Override
@@ -438,6 +497,10 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
             default:
                 throw new RuntimeException("Unknown type: " + ofpType);
         }
+    }
+
+    public byte[] getBytecode() {
+        return cw.toByteArray();
     }
 
 }

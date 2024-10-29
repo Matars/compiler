@@ -4,4 +4,11 @@ public class Main {
         int B;
     }
 
+    public static boolean flip(boolean b) {
+        if (b) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 }

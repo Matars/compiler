@@ -40,7 +40,7 @@ expr:
 	| expr ('+' | '-') expr						# addsub
 	| expr ('>' | '<' | '==') expr				# comp
 	| (ID | STRING | methodCall) '[' expr ']'	# arrayAccess
-	| (ID | STRING | methodCall) '.length'		# length
+	| expr '.length'							# length
 	| 'new' TYPE '[' expr ']'					# newArray
 	| methodCall								# callMethod
 	| INT										# intExpr

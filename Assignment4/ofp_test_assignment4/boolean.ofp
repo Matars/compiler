@@ -1,11 +1,8 @@
 void main() {
-	bool b = true;
+	bool b = false;
 	bool bb = flip(b);  
 	println(bb);  # false
-	
-	
-	bool bbb = select(b,bb,b);
-	println(bbb);   # true
+
 	
 }
 
@@ -14,9 +11,5 @@ bool flip(bool b) {
    else return true;
 }
 
-bool select(bool b,bool bb, bool bbb) {
-    return bbb;
-} 
-	
 
 
