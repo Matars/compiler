@@ -1,5 +1,4 @@
 void main() {
-    int a = "test".length;
-    print(a);
-
+    int[] a = new int[3];
+    println(a);
 }

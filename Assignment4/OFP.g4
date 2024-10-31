@@ -40,7 +40,7 @@ expr:
 	| expr ('+' | '-') expr						# addsub
 	| expr ('>' | '<' | '==') expr				# comp
 	| (ID | STRING | methodCall) '[' expr ']'	# arrayAccess
-	| expr '.length'							# length
+	| (ID | STRING | methodCall) '.length'		# length
 	| 'new' TYPE '[' expr ']'					# newArray
 	| methodCall								# callMethod
 	| INT										# intExpr
@@ -54,8 +54,7 @@ expr:
 print: 'print' '(' expr ')' ';';
 println: 'println' '(' expr ')' ';';
 
-// 'TYPE?' should not be here
-arrayAssign: TYPE? ID '=' ('{' exprList? '}' | methodCall) ';';
+arrayAssign: TYPE ID '=' ('{' exprList? '}' | methodCall) ';';
 arrayAcces: ID '[' expr ']' '=' expr ';';
 methodCall: ID '(' exprList? ')' ';'?;
 

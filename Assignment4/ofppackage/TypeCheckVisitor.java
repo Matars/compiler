@@ -116,8 +116,8 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
      */
     @Override
     public OFPType visitAssignStmt(OFPParser.AssignStmtContext ctx) {
-        
-        // why not use visit(ctx.getChild(0)) 
+
+        // why not use visit(ctx.getChild(0))
         OFPType LHS = visit(ctx.getChild(0));
         OFPType RHS = visit(ctx.getChild(2));
 
@@ -420,7 +420,7 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
 
         if (LHS != RHS) {
             errorCount++;
-            System.out.println(errorCount + "\t[TYPE] here Type mismatch in expression: " + ctx.getText());
+            System.out.println(errorCount + "\t[TYPE] Type mismatch in expression: " + ctx.getText());
             System.out.println("LHS: " + LHS.toString());
             System.out.println("RHS: " + RHS.toString());
         }
@@ -465,6 +465,7 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
     @Override
     public OFPType visitLength(OFPParser.LengthContext ctx) {
         OFPType LHS = visit(ctx.getChild(0));
+
         if (LHS == OFPType.stringType) {
             return OFPType.intType;
         } else if (LHS == OFPType.intArrayType || LHS == OFPType.floatArrayType || LHS == OFPType.charArrayType) {
@@ -606,8 +607,6 @@ public class TypeCheckVisitor extends OFPBaseVisitor<OFPType> {
     public OFPType visitPrint(OFPParser.PrintContext ctx) {
         return visitChildren(ctx);
     }
-
-
 
     /**
      * {@inheritDoc}

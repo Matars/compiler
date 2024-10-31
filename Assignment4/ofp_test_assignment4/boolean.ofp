@@ -11,5 +11,3 @@ bool flip(bool b) {
    else return true;
 }
 
-
-
