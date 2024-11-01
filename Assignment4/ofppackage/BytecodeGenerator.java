@@ -138,39 +138,14 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         String name = ctx.getChild(0).getText();
         FunctionSymbol func = (FunctionSymbol) currentscope.resolve(name);
 
-        // Handle arguments first
-        if (ctx.getChildCount() > 2) { // Has arguments
-            ParseTree argList = ctx.getChild(2);
-            for (int i = 0; i < argList.getChildCount(); i++) {
-                ParseTree arg = argList.getChild(i);
-                if (!arg.getText().equals(",")) { // Skip commas
-                    if (arg.getText().startsWith("'") && arg.getText().endsWith("'")) {
-                        // Handle character literal
-                        mg.push((int) arg.getText().charAt(1));
-                    } else {
-                        // Handle other types of arguments
-                        visit(arg);
-                    }
-                }
-            }
+        // Handle arguments
+        if (ctx.getChildCount() > 2) {
+            visit(ctx.getChild(2));
         }
-
-        // Build method signature
-        StringBuilder methodSignature = new StringBuilder();
-        methodSignature.append(convertType(func.getType().toString())).append(" ")
-                .append(name).append("(");
-
-        ArrayList<Symbol> params = func.getParameters();
-        for (int i = 0; i < params.size(); i++) {
-            if (i > 0)
-                methodSignature.append(",");
-            methodSignature.append(convertType(params.get(i).getType().toString()));
-        }
-        methodSignature.append(")");
 
         // Make the method call
-        mg.invokeStatic(Type.getType("L" + className + ";"),
-                Method.getMethod(methodSignature.toString()));
+        String signature = buildMethodSignature(name, func.getType().toString(), func.getParameters());
+        mg.invokeStatic(Type.getType("L" + className + ";"), Method.getMethod(signature));
 
         return getAsmType(func.getType().toString());
     }
@@ -634,191 +609,26 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
 
     @Override
     public Type visitPrintStmt(OFPParser.PrintStmtContext ctx) {
-        // Get System.out onto stack
-        mg.getStatic(Type.getType(System.class), "out",
-                Type.getType(java.io.PrintStream.class));
-
+        mg.getStatic(Type.getType(System.class), "out", Type.getType(java.io.PrintStream.class));
         Type eType = visit(ctx.getChild(0).getChild(2));
-        String eTypeString = eType.toString();
-
-        String type = null; // Select print type
-
-        // Check if we're dealing with an array type
-        if (eType.toString().contains("[")) {
-            String baseType = eTypeString.substring(0, eTypeString.length() - 2);
-
-            switch (baseType) {
-                case "int":
-                    mg.invokeStatic(
-                            Type.getType(java.util.Arrays.class),
-                            Method.getMethod("String toString(int[])"));
-                    break;
-                case "float":
-                    mg.invokeStatic(
-                            Type.getType(java.util.Arrays.class),
-                            Method.getMethod("String toString(double[])"));
-                    break;
-                case "bool":
-                    mg.invokeStatic(
-                            Type.getType(java.util.Arrays.class),
-                            Method.getMethod("String toString(boolean[])"));
-                    break;
-                case "char":
-                    mg.invokeStatic(
-                            Type.getType(java.util.Arrays.class),
-                            Method.getMethod("String toString(char[])"));
-                    break;
-                default:
-                    throw new RuntimeException("Unsupported array type for printing: " + baseType);
-            }
-
-            // Now call print with the string
-            mg.invokeVirtual(
-                    Type.getType(java.io.PrintStream.class),
-                    Method.getMethod("void print(String)"));
-        } else {
-
-            if (eType == Type.INT_TYPE)
-                type = "int";
-            else if (eType == Type.DOUBLE_TYPE)
-                type = "double";
-            else if (eType == Type.CHAR_TYPE)
-                type = "char";
-            else if (eType == Type.BOOLEAN_TYPE)
-                type = "boolean";
-            else if (eType.toString().equals("Ljava/lang/String;"))
-                type = "String";
-            else
-                throw new RuntimeException("Unkown print type " + eType);
-
-            // Call print
-            mg.invokeVirtual(Type.getType(java.io.PrintStream.class),
-                    Method.getMethod("void print (" + type + ") "));
-        }
-
+        handlePrint(eType, false);
         return null;
     }
 
     @Override
     public Type visitPrintlnStmt(OFPParser.PrintlnStmtContext ctx) {
-        // Get System.out onto stack
-        mg.getStatic(Type.getType(System.class), "out",
-                Type.getType(java.io.PrintStream.class));
-
+        mg.getStatic(Type.getType(System.class), "out", Type.getType(java.io.PrintStream.class));
         Type eType = visit(ctx.getChild(0).getChild(2));
-        String eTypeString = eType.toString();
-
-        // Check if we're dealing with an array type
-        if (eTypeString.endsWith("[]")) {
-            // Get the base type by removing the []
-            String baseType = eTypeString.replace("[]", "");
-
-            switch (baseType) {
-                case "int":
-                    mg.invokeStatic(
-                            Type.getType(java.util.Arrays.class),
-                            Method.getMethod("String toString(int[])"));
-                    break;
-                case "float":
-                    mg.invokeStatic(
-                            Type.getType(java.util.Arrays.class),
-                            Method.getMethod("String toString(double[])"));
-                    break;
-                case "bool":
-                    mg.invokeStatic(
-                            Type.getType(java.util.Arrays.class),
-                            Method.getMethod("String toString(boolean[])"));
-                    break;
-                case "char":
-                    mg.invokeStatic(
-                            Type.getType(java.util.Arrays.class),
-                            Method.getMethod("String toString(char[])"));
-                    break;
-                default:
-                    throw new RuntimeException("Unsupported array type for printing: " + baseType);
-            }
-
-            mg.invokeVirtual(
-                    Type.getType(java.io.PrintStream.class),
-                    Method.getMethod("void println(String)"));
-        } else {
-            // Original handling for non-array types
-            String type = null;
-            if (eType == Type.INT_TYPE)
-                type = "int";
-            else if (eType == Type.DOUBLE_TYPE)
-                type = "double";
-            else if (eType == Type.CHAR_TYPE)
-                type = "char";
-            else if (eType == Type.BOOLEAN_TYPE)
-                type = "boolean";
-            else if (eType.toString().equals("Ljava/lang/String;"))
-                type = "String";
-            else
-                throw new RuntimeException("Unknown print type " + eType);
-
-            mg.invokeVirtual(Type.getType(java.io.PrintStream.class),
-                    Method.getMethod("void println (" + type + ")"));
-        }
-
+        handlePrint(eType, true);
         return null;
     }
 
     @Override
     public Type visitIdExpr(OFPParser.IdExprContext ctx) {
-
         Symbol var = currentscope.resolve(ctx.getText());
-        int stackpointer = currentFunction.indexOf(var);
-
-        // Check if this is a parameter
-        // should be done in argList instead for cleaner code
-        boolean isParameter = currentFunction.getParameters().contains(var);
-
-        if (var.getType().toString().equals("int")) {
-            if (isParameter) {
-                mg.loadArg(stackpointer);
-            } else {
-                mg.loadLocal(stackpointer, Type.INT_TYPE);
-            }
-            return Type.INT_TYPE;
-        } else if (var.getType().toString().equals("float")) {
-            if (isParameter) {
-                mg.loadArg(stackpointer);
-            } else {
-                mg.loadLocal(stackpointer, Type.DOUBLE_TYPE);
-            }
-            return Type.DOUBLE_TYPE;
-        } else if (var.getType().toString().equals("char")) {
-            if (isParameter) {
-                mg.loadArg(stackpointer);
-            } else {
-                mg.loadLocal(stackpointer, Type.CHAR_TYPE);
-            }
-            return Type.CHAR_TYPE;
-        } else if (var.getType().toString().equals("bool")) {
-            if (isParameter) {
-                mg.loadArg(stackpointer);
-            } else {
-                mg.loadLocal(stackpointer, Type.BOOLEAN_TYPE);
-            }
-            return Type.BOOLEAN_TYPE;
-        } else if (var.getType().toString().equals("string")) {
-            if (isParameter) {
-                mg.loadArg(stackpointer);
-            } else {
-                mg.loadLocal(stackpointer, Type.getType(String.class));
-            }
-            return Type.getType(String.class);
-        } else if (var.getType().toString().contains("[")) {
-            if (isParameter) {
-                mg.loadArg(stackpointer);
-            } else {
-                mg.loadLocal(stackpointer, Type.getType(var.getType().toString()));
-            }
-            return Type.getType(var.getType().toString());
-        } else {
-            throw new RuntimeException("Unknown type " + var.getType());
-        }
+        Type type = getAsmType(var.getType().toString());
+        loadVariable(var, type);
+        return type;
     }
 
     @Override
@@ -866,7 +676,20 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         return null;
     }
 
-    // Helper method to convert OFP types to Java types
+    // Helpers
+    private String buildMethodSignature(String name, String returnType, ArrayList<Symbol> params) {
+        StringBuilder methodSignature = new StringBuilder();
+        methodSignature.append(convertType(returnType)).append(" ").append(name).append("(");
+
+        for (int i = 0; i < params.size(); i++) {
+            if (i > 0)
+                methodSignature.append(",");
+            methodSignature.append(convertType(params.get(i).getType().toString()));
+        }
+        methodSignature.append(")");
+        return methodSignature.toString();
+    }
+
     private String convertType(String ofpType) {
         // check if array type
         if (ofpType.contains("[")) {
@@ -912,6 +735,51 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
                 return Type.VOID_TYPE;
             default:
                 throw new RuntimeException("Unknown type: " + ofpType);
+        }
+    }
+
+    private void handlePrint(Type eType, boolean isLn) {
+        if (eType.toString().contains("[")) {
+            handleArrayPrint(eType);
+        } else {
+            String type = getPrintType(eType);
+            String methodName = isLn ? "println" : "print";
+            mg.invokeVirtual(Type.getType(java.io.PrintStream.class),
+                    Method.getMethod("void " + methodName + " (" + type + ")"));
+        }
+    }
+
+    private void handleArrayPrint(Type arrayType) {
+        String baseType = arrayType.toString().substring(0, arrayType.toString().length() - 2);
+        String methodName = "toString(" + convertType(baseType) + "[])";
+        mg.invokeStatic(Type.getType(java.util.Arrays.class),
+                Method.getMethod("String " + methodName));
+        mg.invokeVirtual(Type.getType(java.io.PrintStream.class),
+                Method.getMethod("void println(String)"));
+    }
+
+    private String getPrintType(Type type) {
+        if (type == Type.INT_TYPE)
+            return "int";
+        if (type == Type.DOUBLE_TYPE)
+            return "double";
+        if (type == Type.CHAR_TYPE)
+            return "char";
+        if (type == Type.BOOLEAN_TYPE)
+            return "boolean";
+        if (type.toString().equals("Ljava/lang/String;"))
+            return "String";
+        throw new RuntimeException("Unknown print type " + type);
+    }
+
+    private void loadVariable(Symbol var, Type type) {
+        int stackpointer = currentFunction.indexOf(var);
+        boolean isParameter = currentFunction.getParameters().contains(var);
+
+        if (isParameter) {
+            mg.loadArg(stackpointer);
+        } else {
+            mg.loadLocal(stackpointer, type);
         }
     }
 

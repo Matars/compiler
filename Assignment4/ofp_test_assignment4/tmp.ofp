@@ -1,23 +1,13 @@
 void main() {
+    char[] arr = {'a', dog()};
+    char newchar = 'c';
+
+    if('c' == 'a'){
+        arr[0] = newchar;
+    }
+
 }
 
-
-# True if str contains both X and Y
-bool containsXandY(string str) {
-   if ( contains(str,'X') ) {
-      if ( contains(str,'Y') ) 
-         return true;
-   }
-   return false;
-}
-
-bool contains(string str, char ch) {
-   int i=0;
-   while (i<str.length) {
-      char p = str[i];
-      if (p == ch) 
-         return true;
-      i = i+1;
-   }
-   return false;
+char dog(){
+    return 'x';
 }

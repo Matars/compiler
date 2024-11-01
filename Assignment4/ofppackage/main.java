@@ -36,7 +36,7 @@ public class main extends ClassLoader implements Opcodes {
         // get cwd
         String cwd = System.getProperty("user.dir");
         String testDir = cwd + "/ofp_test_assignment4/";
-        String fileName = "arrays.ofp";
+        String fileName = "while.ofp";
         String testProgram = testDir + fileName;
 
         // Check if input ends with ".ofp"
