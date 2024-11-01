@@ -136,14 +136,29 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     @Override
     public Type visitMethodCall(OFPParser.MethodCallContext ctx) {
         String name = ctx.getChild(0).getText();
-        visitChildren(ctx);
-
-        // Build method signature for call
         FunctionSymbol func = (FunctionSymbol) currentscope.resolve(name);
-        String funcType = func.getType().toString();
 
+        // Handle arguments first
+        if (ctx.getChildCount() > 2) { // Has arguments
+            ParseTree argList = ctx.getChild(2);
+            for (int i = 0; i < argList.getChildCount(); i++) {
+                ParseTree arg = argList.getChild(i);
+                if (!arg.getText().equals(",")) { // Skip commas
+                    if (arg.getText().startsWith("'") && arg.getText().endsWith("'")) {
+                        // Handle character literal
+                        mg.push((int) arg.getText().charAt(1));
+                    } else {
+                        // Handle other types of arguments
+                        visit(arg);
+                    }
+                }
+            }
+        }
+
+        // Build method signature
         StringBuilder methodSignature = new StringBuilder();
-        methodSignature.append(convertType(funcType)).append(" ").append(name).append("(");
+        methodSignature.append(convertType(func.getType().toString())).append(" ")
+                .append(name).append("(");
 
         ArrayList<Symbol> params = func.getParameters();
         for (int i = 0; i < params.size(); i++) {
@@ -153,10 +168,22 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         }
         methodSignature.append(")");
 
+        // Make the method call
         mg.invokeStatic(Type.getType("L" + className + ";"),
                 Method.getMethod(methodSignature.toString()));
 
-        return getAsmType(funcType);
+        return getAsmType(func.getType().toString());
+    }
+
+    @Override
+    public Type visitArgList(OFPParser.ArgListContext ctx) {
+        // Visit each argument in order
+        for (ParseTree child : ctx.children) {
+            if (!child.getText().equals(",")) {
+                visit(child);
+            }
+        }
+        return null;
     }
 
     @Override
@@ -202,14 +229,16 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
             Symbol arrayVar = currentscope.resolve(arrayName);
             String arrayType = arrayVar.getType().toString();
 
-            // Load array reference onto stack
-            System.out.println("Array type: " + arrayType);
-            System.out.println("Array var: " + arrayVar);
-            System.out.println("Stack pointer: " + currentFunction.indexOf(arrayVar));
-            System.out.println();
-
-            int stackpointer = currentFunction.indexOf(arrayVar);
-            mg.loadLocal(stackpointer, Type.getType(arrayType));
+            // Handle array loading differently for parameters vs local variables
+            if (currentFunction.getParameters().contains(arrayVar)) {
+                // For parameters, use loadArg
+                int paramIndex = currentFunction.getParameters().indexOf(arrayVar);
+                mg.loadArg(paramIndex);
+            } else {
+                // For local variables, use loadLocal
+                int stackpointer = currentFunction.indexOf(arrayVar);
+                mg.loadLocal(stackpointer, Type.getType(arrayType));
+            }
 
             // Load index onto stack
             visit(ctx.getChild(0).getChild(2));
@@ -411,22 +440,33 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         Symbol arrayVar = currentscope.resolve(arrayName);
         String arrayType = arrayVar.getType().toString();
 
-        int stackpointer = currentFunction.indexOf(arrayVar);
+        // Special handling for strings
+        if (arrayType.equals("string")) {
+            // Load the string reference
+            if (currentFunction.getParameters().contains(arrayVar)) {
+                int paramIndex = currentFunction.getParameters().indexOf(arrayVar);
+                mg.loadArg(paramIndex);
+            } else {
+                int stackpointer = currentFunction.indexOf(arrayVar);
+                mg.loadLocal(stackpointer, Type.getType(String.class));
+            }
 
-        // Handle string indexing differently
-        // BELO HARDCODED MUST REDO        
-        // if (arrayType.equals("string")) {
-        //     mg.loadLocal(stackpointer, Type.getType(String.class));
-        //     visit(ctx.getChild(2));
-        //     mg.invokeVirtual(Type.getType(String.class),
-        //             Method.getMethod("char charAt (int)"));
-        //     return Type.CHAR_TYPE;
-        // }
+            // Load the index
+            visit(ctx.getChild(2));
 
-        // Array handling
+            // Call charAt method
+            mg.invokeVirtual(Type.getType(String.class),
+                    Method.getMethod("char charAt (int)"));
+
+            return Type.CHAR_TYPE;
+        }
+
+        // Regular array handling (existing code)
         if (currentFunction.getParameters().contains(arrayVar)) {
-            mg.loadArg(currentFunction.getParameters().indexOf(arrayVar));
+            int paramIndex = currentFunction.getParameters().indexOf(arrayVar);
+            mg.loadArg(paramIndex);
         } else {
+            int stackpointer = currentFunction.indexOf(arrayVar);
             mg.loadLocal(stackpointer, Type.getType(arrayType));
         }
 
@@ -478,29 +518,42 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     public Type visitComp(OFPParser.CompContext ctx) {
         // First evaluate LHS - puts value on stack
         Type LHS = visit(ctx.getChild(0));
-
-        // Then evaluate RHS - puts value on stack
-        Type RHS = visit(ctx.getChild(2));
-
         String comp = ctx.getChild(1).getText();
 
-        // Create label for comparison result
+        // Create labels for comparison result
         Label trueLabel = new Label();
         Label endLabel = new Label();
 
-        // Do comparison and push boolean result
-        switch (comp) {
-            case "<":
-                mg.ifCmp(LHS, GeneratorAdapter.LT, trueLabel);
-                break;
-            case ">":
-                mg.ifCmp(LHS, GeneratorAdapter.GT, trueLabel);
-                break;
-            case "==":
-                mg.ifCmp(LHS, GeneratorAdapter.EQ, trueLabel);
-                break;
-            default:
-                throw new RuntimeException("Unknown comparison operator: " + comp);
+        // For character comparisons
+        if (LHS == Type.CHAR_TYPE) {
+            // Push the comparison value ('A') onto stack
+            String rhs = ctx.getChild(2).getText();
+            if (rhs.startsWith("'") && rhs.endsWith("'")) {
+                // It's a character literal
+                mg.push((int) rhs.charAt(1));
+            } else {
+                // It's a variable or other expression
+                visit(ctx.getChild(2));
+            }
+
+            // Do comparison (both values are now on stack)
+            mg.ifICmp(GeneratorAdapter.EQ, trueLabel);
+        } else {
+            // Original numeric comparison code
+            Type RHS = visit(ctx.getChild(2));
+            switch (comp) {
+                case "<":
+                    mg.ifCmp(LHS, GeneratorAdapter.LT, trueLabel);
+                    break;
+                case ">":
+                    mg.ifCmp(LHS, GeneratorAdapter.GT, trueLabel);
+                    break;
+                case "==":
+                    mg.ifCmp(LHS, GeneratorAdapter.EQ, trueLabel);
+                    break;
+                default:
+                    throw new RuntimeException("Unknown comparison operator: " + comp);
+            }
         }
 
         // Push false and jump to end
@@ -794,6 +847,16 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         boolean value = Boolean.parseBoolean(ctx.getText());
         mg.push(value);
         return Type.BOOLEAN_TYPE;
+    }
+
+    @Override
+    public Type visitCharExpr(OFPParser.CharExprContext ctx) {
+        String text = ctx.getText();
+        if (text.startsWith("'") && text.endsWith("'") && text.length() == 3) {
+            mg.push((int) text.charAt(1));
+            return Type.CHAR_TYPE;
+        }
+        throw new RuntimeException("Invalid character literal: " + text);
     }
 
     @Override

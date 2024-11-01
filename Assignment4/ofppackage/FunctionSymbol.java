@@ -21,11 +21,26 @@ public class FunctionSymbol extends Symbol {
 
     }
 
+    public int indexOf(Symbol sym) {
+        // For parameters, get index from parameters list
+        if (parameters.contains(sym)) {
+            return parameters.indexOf(sym);
+        }
+        // For local variables, get index from indices map
+        Integer index = indices.get(sym);
+        if (index == null) {
+            throw new RuntimeException("Symbol not found: " + sym.getName());
+        }
+        return index;
+    }
+
     public void addVariable(Symbol var) {
-        // add if not already a parameter
+        // Only add to indices if not already a parameter
         if (!parameters.contains(var)) {
+            // Store current index
             indices.put(var, localVarIndex);
-            // if float, increment index by 2
+
+            // Increment index based on type
             if (var.getType().toString().equals("float")) {
                 localVarIndex += 2;
             } else {
@@ -34,20 +49,12 @@ public class FunctionSymbol extends Symbol {
         }
     }
 
-    public int indexOf(Symbol sym) {
-        // For parameters, calculate correct index
-        if (parameters.contains(sym)) {
-            return parameters.indexOf(sym);
-        }
-        return indices.get(sym);
+    public ArrayList<Symbol> getParameters() {
+        return parameters;
     }
 
     public int getParameterCount() {
         return parameters.size();
-    }
-
-    public ArrayList<Symbol> getParameters() {
-        return parameters;
     }
 
     public Symbol getParameter(int index) {
