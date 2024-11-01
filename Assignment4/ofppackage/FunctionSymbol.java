@@ -16,21 +16,21 @@ public class FunctionSymbol extends Symbol {
     }
 
     public void addParameter(Symbol param) {
-        // Parameters get indices 0, 1, etc.
-        indices.put(param, parameters.size());
         parameters.add(param);
+        addVariable(param);
+
     }
 
     public void addVariable(Symbol var) {
         // add if not already a parameter
         if (!parameters.contains(var)) {
+            indices.put(var, localVarIndex);
             // if float, increment index by 2
             if (var.getType().toString().equals("float")) {
                 localVarIndex += 2;
             } else {
                 localVarIndex++;
             }
-            indices.put(var, localVarIndex);
         }
     }
 

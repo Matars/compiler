@@ -105,9 +105,6 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
     public Type visitCallMethodStmt(OFPParser.CallMethodStmtContext ctx) {
         String name = ctx.getChild(0).getChild(0).getText();
 
-        // Load the arguments first
-        visitChildren(ctx);
-
         // Build method signature for call
         FunctionSymbol func = (FunctionSymbol) currentscope.resolve(name);
         String funcType = func.getType().toString();
@@ -390,7 +387,7 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
                 mg.newArray(Type.INT_TYPE);
                 break;
             case "float":
-                mg.newArray(Type.FLOAT_TYPE);
+                mg.newArray(Type.DOUBLE_TYPE);
                 break;
             case "bool":
                 mg.newArray(Type.BOOLEAN_TYPE);
@@ -417,13 +414,14 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         int stackpointer = currentFunction.indexOf(arrayVar);
 
         // Handle string indexing differently
-        if (arrayType.equals("string")) {
-            mg.loadLocal(stackpointer, Type.getType(String.class));
-            visit(ctx.getChild(2));
-            mg.invokeVirtual(Type.getType(String.class),
-                    Method.getMethod("char charAt (int)"));
-            return Type.CHAR_TYPE;
-        }
+        // BELO HARDCODED MUST REDO        
+        // if (arrayType.equals("string")) {
+        //     mg.loadLocal(stackpointer, Type.getType(String.class));
+        //     visit(ctx.getChild(2));
+        //     mg.invokeVirtual(Type.getType(String.class),
+        //             Method.getMethod("char charAt (int)"));
+        //     return Type.CHAR_TYPE;
+        // }
 
         // Array handling
         if (currentFunction.getParameters().contains(arrayVar)) {
@@ -660,7 +658,7 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
         // Check if we're dealing with an array type
         if (eTypeString.endsWith("[]")) {
             // Get the base type by removing the []
-            String baseType = eTypeString.substring(0, eTypeString.length() - 2);
+            String baseType = eTypeString.replace("[]", "");
 
             switch (baseType) {
                 case "int":
@@ -687,7 +685,6 @@ public class BytecodeGenerator extends OFPBaseVisitor<Type> implements Opcodes {
                     throw new RuntimeException("Unsupported array type for printing: " + baseType);
             }
 
-            // Now call println with the string result
             mg.invokeVirtual(
                     Type.getType(java.io.PrintStream.class),
                     Method.getMethod("void println(String)"));
